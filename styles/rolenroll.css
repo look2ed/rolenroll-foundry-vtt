@@ -144,6 +144,88 @@
   min-height: 30px;
 }
 
+.rolenroll .ability-groups,
+.rolenroll .extra-skill-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.rolenroll .ability-group {
+  display: grid;
+  gap: 8px;
+}
+
+.rolenroll .ability-group h2 {
+  margin: 0;
+  color: #173a3f;
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.rolenroll .skill-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rolenroll .skill-row,
+.rolenroll .extra-skill-row {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #d6d1c5;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.rolenroll .skill-row {
+  grid-template-columns: minmax(150px, 1fr) auto;
+  align-items: center;
+}
+
+.rolenroll .skill-name {
+  display: grid;
+  gap: 1px;
+}
+
+.rolenroll .skill-name span {
+  color: #173a3f;
+  font-weight: 900;
+}
+
+.rolenroll .skill-name small {
+  color: #6a6253;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.rolenroll .extra-skill-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rolenroll .extra-skill-row {
+  grid-template-columns: minmax(0, 1fr) minmax(150px, 0.7fr);
+  align-items: end;
+}
+
+.rolenroll .extra-skill-name,
+.rolenroll .extra-skill-details {
+  grid-column: 1 / -1;
+}
+
+.rolenroll .extra-skill-details textarea {
+  min-height: 74px;
+}
+
+.rolenroll .extra-skill-dots {
+  align-self: center;
+}
+
+.rolenroll .skill-row > button,
+.rolenroll .extra-skill-row > button {
+  min-height: 30px;
+}
+
 .rolenroll textarea {
   min-height: 120px;
   resize: vertical;
@@ -165,7 +247,10 @@
   .rolenroll .sheet-header,
   .rolenroll .resource-grid,
   .rolenroll .attribute-grid,
-  .rolenroll .roll-controls {
+  .rolenroll .roll-controls,
+  .rolenroll .skill-grid,
+  .rolenroll .extra-skill-grid,
+  .rolenroll .extra-skill-row {
     grid-template-columns: 1fr;
   }
 }
