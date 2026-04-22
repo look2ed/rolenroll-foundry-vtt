@@ -74,7 +74,20 @@ const GENERAL_ABILITY_GROUPS = [
 ];
 
 const GENERAL_SKILLS = GENERAL_ABILITY_GROUPS.flatMap((group) => group.skills);
-const EXTRA_SKILL_SLOTS = ["one", "two", "three", "four", "five", "six"];
+const EXTRA_SKILL_SLOTS = [
+  "one",
+  "two",
+  "three",
+  "four",
+  "five",
+  "six",
+  "seven",
+  "eight",
+  "nine",
+  "ten",
+  "eleven",
+  "twelve"
+];
 
 function clamp(value, min, max) {
   const number = Number(value ?? 0);
@@ -262,6 +275,62 @@ function getChosenAttribute(actor, skill) {
   return alt > primary ? altKey : primaryKey;
 }
 
+function getSkillRollParts(actor, skillKey) {
+  const skill = GENERAL_SKILLS.find((entry) => entry.key === skillKey);
+  if (!skill) return { dice: 0, successKeys: [] };
+
+  const skillDice = Number(actor.system.skills?.[skillKey] ?? 0) || 0;
+  const chosenAttribute = getChosenAttribute(actor, skill);
+  const attributeDice = getAttributeValue(actor, chosenAttribute);
+  const successKeys = [];
+  if (actor.system.skillBonuses?.[skillKey]) successKeys.push(`skill:${skillKey}`);
+  if (actor.system.attributeBonuses?.[chosenAttribute]) successKeys.push(`attribute:${chosenAttribute}`);
+
+  return {
+    dice: skillDice + attributeDice,
+    successKeys
+  };
+}
+
+function parseDependencyIds(value) {
+  return String(value || "")
+    .split(",")
+    .map((dependency) => dependency.trim())
+    .filter(Boolean);
+}
+
+function buildDependencyValue(ids) {
+  return Array.from(new Set(ids.filter(Boolean))).join(",");
+}
+
+function getDependencyRollParts(actor, dependencyIds) {
+  const successKeys = new Set();
+  let dice = 0;
+
+  for (const dependencyId of dependencyIds) {
+    if (dependencyId.startsWith("attribute:")) {
+      const attribute = dependencyId.slice("attribute:".length);
+      if (!ATTRIBUTE_KEYS.includes(attribute)) continue;
+
+      dice += getAttributeValue(actor, attribute);
+      if (actor.system.attributeBonuses?.[attribute]) successKeys.add(`attribute:${attribute}`);
+      continue;
+    }
+
+    if (dependencyId.startsWith("skill:")) {
+      const skillKey = dependencyId.slice("skill:".length);
+      const parts = getSkillRollParts(actor, skillKey);
+      dice += parts.dice;
+      parts.successKeys.forEach((key) => successKeys.add(key));
+    }
+  }
+
+  return {
+    dice,
+    success: successKeys.size
+  };
+}
+
 class RolenrollCharacterData extends foundry.abstract.TypeDataModel {
   static defineSchema() {
     return {
@@ -305,8 +374,10 @@ class RolenrollCharacterData extends foundry.abstract.TypeDataModel {
         EXTRA_SKILL_SLOTS.map((slot) => [
           slot,
           new fields.SchemaField({
+            active: new fields.BooleanField({ required: true, initial: false }),
             name: new fields.StringField({ required: true, initial: "" }),
             points: new fields.NumberField({ required: true, integer: true, initial: 0, min: 0, max: 6 }),
+            dependencies: new fields.StringField({ required: true, initial: "" }),
             attribute: new fields.StringField({ required: true, initial: "strength" }),
             bonus: new fields.BooleanField({ required: true, initial: false }),
             profession: new fields.BooleanField({ required: true, initial: false }),
@@ -388,26 +459,35 @@ class RolenrollActorSheet extends ActorSheet {
       })
     }));
     context.attributeOptions = ATTRIBUTE_KEYS.map((key) => ({
-      key,
+      key: `attribute:${key}`,
       label: `${game.i18n.localize(`ROLENROLL.Attribute.${key}`)} (${game.i18n.localize(`ROLENROLL.AttributeCode.${key}`)})`
     }));
+    context.generalAbilityOptions = GENERAL_SKILLS.map((skill) => ({
+      key: `skill:${skill.key}`,
+      label: game.i18n.localize(`ROLENROLL.Skill.${skill.key}`)
+    }));
+    const allDependencyOptions = context.attributeOptions.concat(context.generalAbilityOptions);
     context.extraSkillSlots = EXTRA_SKILL_SLOTS.map((slot) => {
       const extraSkill = this.actor.system.extraSkills?.[slot] ?? {};
-      const selectedAttribute = extraSkill.attribute || "strength";
+      const dependencies = parseDependencyIds(extraSkill.dependencies);
+      const active = Boolean(extraSkill.active || extraSkill.name || extraSkill.points || extraSkill.details || dependencies.length);
       return {
         slot,
+        active,
         name: extraSkill.name ?? "",
         points: Number(extraSkill.points ?? 0) || 0,
         bonus: Boolean(extraSkill.bonus),
         profession: Boolean(extraSkill.profession),
         details: extraSkill.details ?? "",
+        dependencies: buildDependencyValue(dependencies),
         dots: buildDots(Number(extraSkill.points ?? 0) || 0),
-        attributeOptions: context.attributeOptions.map((option) => ({
+        dependencyOptions: allDependencyOptions.map((option) => ({
           ...option,
-          selected: option.key === selectedAttribute
+          checked: dependencies.includes(option.key)
         }))
       };
-    });
+    }).filter((extraSkill) => extraSkill.active);
+    context.canAddExtraSkill = context.extraSkillSlots.length < EXTRA_SKILL_SLOTS.length;
     return context;
   }
 
@@ -420,6 +500,9 @@ class RolenrollActorSheet extends ActorSheet {
     html.find("[data-roll-skill]").on("click", this.#onSkillRoll.bind(this));
     html.find("[data-extra-skill-dot]").on("click", this.#onExtraSkillDot.bind(this));
     html.find("[data-roll-extra-skill]").on("click", this.#onExtraSkillRoll.bind(this));
+    html.find("[data-add-extra-skill]").on("click", this.#onAddExtraSkill.bind(this));
+    html.find("[data-remove-extra-skill]").on("click", this.#onRemoveExtraSkill.bind(this));
+    html.find("[data-extra-skill-dependency]").on("change", this.#onExtraSkillDependency.bind(this));
   }
 
   async #onAttributeDot(event) {
@@ -453,7 +536,60 @@ class RolenrollActorSheet extends ActorSheet {
 
     const currentValue = Number(this.actor.system.extraSkills?.[slot]?.points ?? 0);
     const value = currentValue === clickedValue ? clickedValue - 1 : clickedValue;
-    await this.actor.update({ [`system.extraSkills.${slot}.points`]: Math.max(0, value) });
+    await this.actor.update({
+      [`system.extraSkills.${slot}.active`]: true,
+      [`system.extraSkills.${slot}.points`]: Math.max(0, value)
+    });
+  }
+
+  async #onAddExtraSkill(event) {
+    event.preventDefault();
+
+    const slot = EXTRA_SKILL_SLOTS.find((key) => {
+      const extraSkill = this.actor.system.extraSkills?.[key] ?? {};
+      return !extraSkill.active && !extraSkill.name && !extraSkill.points && !extraSkill.details && !extraSkill.dependencies;
+    });
+
+    if (!slot) {
+      ui.notifications.warn(game.i18n.localize("ROLENROLL.ExtraSkill.NoSlots"));
+      return;
+    }
+
+    await this.actor.update({ [`system.extraSkills.${slot}.active`]: true });
+  }
+
+  async #onRemoveExtraSkill(event) {
+    event.preventDefault();
+
+    const slot = event.currentTarget.dataset.removeExtraSkill;
+    if (!EXTRA_SKILL_SLOTS.includes(slot)) return;
+
+    await this.actor.update({
+      [`system.extraSkills.${slot}.active`]: false,
+      [`system.extraSkills.${slot}.name`]: "",
+      [`system.extraSkills.${slot}.points`]: 0,
+      [`system.extraSkills.${slot}.dependencies`]: "",
+      [`system.extraSkills.${slot}.attribute`]: "strength",
+      [`system.extraSkills.${slot}.bonus`]: false,
+      [`system.extraSkills.${slot}.profession`]: false,
+      [`system.extraSkills.${slot}.details`]: ""
+    });
+  }
+
+  async #onExtraSkillDependency(event) {
+    const slot = event.currentTarget.dataset.extraSkillDependency;
+    if (!EXTRA_SKILL_SLOTS.includes(slot)) return;
+
+    const container = event.currentTarget.closest("[data-extra-skill-row]");
+    if (!container) return;
+
+    const dependencies = Array.from(container.querySelectorAll(`[data-extra-skill-dependency="${slot}"]:checked`))
+      .map((input) => input.value);
+
+    await this.actor.update({
+      [`system.extraSkills.${slot}.active`]: true,
+      [`system.extraSkills.${slot}.dependencies`]: buildDependencyValue(dependencies)
+    });
   }
 
   async #onAttributeRoll(event) {
@@ -484,13 +620,8 @@ class RolenrollActorSheet extends ActorSheet {
     event.preventDefault();
 
     const skillKey = event.currentTarget.dataset.rollSkill;
-    const skill = GENERAL_SKILLS.find((entry) => entry.key === skillKey);
-    if (!skill) return;
-
-    const skillDice = Number(this.actor.system.skills?.[skillKey] ?? 0) || 0;
-    const chosenAttribute = getChosenAttribute(this.actor, skill);
-    const attributeDice = getAttributeValue(this.actor, chosenAttribute);
-    const totalDice = skillDice + attributeDice;
+    const parts = getSkillRollParts(this.actor, skillKey);
+    const totalDice = parts.dice;
 
     if (totalDice <= 0) {
       ui.notifications.warn(game.i18n.localize("ROLENROLL.Roll.NoDice"));
@@ -498,14 +629,12 @@ class RolenrollActorSheet extends ActorSheet {
     }
 
     const globalSuccess = Number(this.actor.system.roll?.success ?? 0) || 0;
-    const skillSuccess = this.actor.system.skillBonuses?.[skillKey] ? 1 : 0;
-    const attributeSuccess = this.actor.system.attributeBonuses?.[chosenAttribute] ? 1 : 0;
 
     this.#openRollDialog({
       label: game.i18n.localize(`ROLENROLL.Skill.${skillKey}`),
       totalDice,
       specialDice: this.actor.system.roll?.specialDice ?? "",
-      success: Math.max(0, globalSuccess + skillSuccess + attributeSuccess),
+      success: Math.max(0, globalSuccess + parts.successKeys.length),
       penalty: Math.max(0, Number(this.actor.system.roll?.penalty ?? 0) || 0)
     });
   }
@@ -518,9 +647,8 @@ class RolenrollActorSheet extends ActorSheet {
     if (!EXTRA_SKILL_SLOTS.includes(slot) || !extraSkill) return;
 
     const skillDice = Number(extraSkill.points ?? 0) || 0;
-    const attribute = ATTRIBUTE_KEYS.includes(extraSkill.attribute) ? extraSkill.attribute : "strength";
-    const attributeDice = getAttributeValue(this.actor, attribute);
-    const totalDice = skillDice + attributeDice;
+    const dependencyParts = getDependencyRollParts(this.actor, parseDependencyIds(extraSkill.dependencies));
+    const totalDice = skillDice + dependencyParts.dice;
 
     if (totalDice <= 0) {
       ui.notifications.warn(game.i18n.localize("ROLENROLL.Roll.NoDice"));
@@ -530,14 +658,13 @@ class RolenrollActorSheet extends ActorSheet {
     const globalSuccess = Number(this.actor.system.roll?.success ?? 0) || 0;
     const skillSuccess = extraSkill.bonus ? 1 : 0;
     const professionSuccess = extraSkill.profession ? 1 : 0;
-    const attributeSuccess = this.actor.system.attributeBonuses?.[attribute] ? 1 : 0;
     const label = extraSkill.name?.trim() || game.i18n.localize("ROLENROLL.ExtraSkill.Untitled");
 
     this.#openRollDialog({
       label,
       totalDice,
       specialDice: this.actor.system.roll?.specialDice ?? "",
-      success: Math.max(0, globalSuccess + skillSuccess + professionSuccess + attributeSuccess),
+      success: Math.max(0, globalSuccess + skillSuccess + professionSuccess + dependencyParts.success),
       penalty: Math.max(0, Number(this.actor.system.roll?.penalty ?? 0) || 0)
     });
   }

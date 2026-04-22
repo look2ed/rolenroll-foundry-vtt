@@ -203,14 +203,56 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.rolenroll .extra-skill-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
 .rolenroll .extra-skill-row {
-  grid-template-columns: minmax(0, 1fr) minmax(150px, 0.7fr);
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: end;
 }
 
 .rolenroll .extra-skill-name,
-.rolenroll .extra-skill-details {
+.rolenroll .extra-skill-details,
+.rolenroll .extra-skill-dependencies {
   grid-column: 1 / -1;
+}
+
+.rolenroll .extra-skill-dependencies {
+  display: grid;
+  gap: 6px;
+}
+
+.rolenroll .extra-skill-dependencies > span {
+  color: #173a3f;
+  font-weight: 900;
+}
+
+.rolenroll .dependency-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 8px;
+  max-height: 170px;
+  overflow-y: auto;
+  padding: 8px;
+  border: 1px solid #d6d1c5;
+  border-radius: 6px;
+  background: #fffdf7;
+}
+
+.rolenroll .dependency-option {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  color: #5f5b50;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.rolenroll .dependency-option input {
+  margin: 0;
 }
 
 .rolenroll .extra-skill-details textarea {
@@ -224,6 +266,22 @@
 .rolenroll .skill-row > button,
 .rolenroll .extra-skill-row > button {
   min-height: 30px;
+}
+
+.rolenroll .extra-skill-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  grid-column: 1 / -1;
+}
+
+.rolenroll .empty-list {
+  margin: 0;
+  padding: 12px;
+  border: 1px dashed #d6d1c5;
+  border-radius: 8px;
+  color: #5f5b50;
+  font-weight: 800;
 }
 
 .rolenroll textarea {
@@ -250,7 +308,8 @@
   .rolenroll .roll-controls,
   .rolenroll .skill-grid,
   .rolenroll .extra-skill-grid,
-  .rolenroll .extra-skill-row {
+  .rolenroll .extra-skill-row,
+  .rolenroll .dependency-grid {
     grid-template-columns: 1fr;
   }
 }

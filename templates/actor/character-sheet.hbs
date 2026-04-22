@@ -122,22 +122,38 @@
     </div>
 
     <div class="tab" data-group="primary" data-tab="extra">
+      <div class="extra-skill-toolbar">
+        <button type="button" data-add-extra-skill>{{localize "ROLENROLL.ExtraSkill.Add"}}</button>
+      </div>
+
       <div class="extra-skill-grid">
         {{#each extraSkillSlots}}
-          <section class="extra-skill-row">
+          <section class="extra-skill-row" data-extra-skill-row="{{slot}}">
             <label class="extra-skill-name">
               <span>{{localize "ROLENROLL.ExtraSkill.Name"}}</span>
               <input type="text" name="system.extraSkills.{{slot}}.name" value="{{name}}">
             </label>
-            <label>
-              <span>{{localize "ROLENROLL.ExtraSkill.Attribute"}}</span>
-              <select name="system.extraSkills.{{slot}}.attribute">
-                {{#each attributeOptions}}
-                  <option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>
-                {{/each}}
-              </select>
-            </label>
             <input type="hidden" name="system.extraSkills.{{slot}}.points" value="{{points}}">
+            <input type="hidden" name="system.extraSkills.{{slot}}.active" value="true">
+            <input type="hidden" name="system.extraSkills.{{slot}}.dependencies" value="{{dependencies}}">
+
+            <div class="extra-skill-dependencies">
+              <span>{{localize "ROLENROLL.ExtraSkill.LinkedStats"}}</span>
+              <div class="dependency-grid">
+                {{#each dependencyOptions}}
+                  <label class="dependency-option">
+                    <input
+                      type="checkbox"
+                      value="{{key}}"
+                      data-extra-skill-dependency="{{../slot}}"
+                      {{#if checked}}checked{{/if}}
+                    >
+                    <span>{{label}}</span>
+                  </label>
+                {{/each}}
+              </div>
+            </div>
+
             <div class="stat-dots extra-skill-dots" aria-label="{{name}}">
               {{#each dots}}
                 <button
@@ -161,8 +177,13 @@
               <span>{{localize "ROLENROLL.ExtraSkill.Details"}}</span>
               <textarea name="system.extraSkills.{{slot}}.details">{{details}}</textarea>
             </label>
-            <button type="button" data-roll-extra-skill="{{slot}}">{{localize "ROLENROLL.Action.RollD6"}}</button>
+            <div class="extra-skill-actions">
+              <button type="button" data-roll-extra-skill="{{slot}}">{{localize "ROLENROLL.Action.RollD6"}}</button>
+              <button type="button" data-remove-extra-skill="{{slot}}">{{localize "ROLENROLL.Action.Remove"}}</button>
+            </div>
           </section>
+        {{else}}
+          <p class="empty-list">{{localize "ROLENROLL.ExtraSkill.Empty"}}</p>
         {{/each}}
       </div>
     </div>
