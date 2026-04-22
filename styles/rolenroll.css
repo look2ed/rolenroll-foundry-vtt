@@ -2,8 +2,30 @@
   color: #171717;
 }
 
+.rolenroll,
+.rolenroll * {
+  box-sizing: border-box;
+}
+
 .rolenroll .window-content {
   background: #fffdf7;
+  overflow-x: hidden;
+}
+
+.rolenroll input,
+.rolenroll select,
+.rolenroll textarea,
+.rolenroll button {
+  min-width: 0;
+}
+
+.rolenroll span,
+.rolenroll small,
+.rolenroll label,
+.rolenroll button,
+.rolenroll .item,
+.rolenroll h2 {
+  overflow-wrap: anywhere;
 }
 
 .rolenroll .sheet-header {
@@ -11,6 +33,11 @@
   grid-template-columns: 100px minmax(0, 1fr);
   gap: 14px;
   align-items: start;
+  min-width: 0;
+}
+
+.rolenroll .header-fields {
+  min-width: 0;
 }
 
 .rolenroll .profile-img {
@@ -27,32 +54,37 @@
 
 .rolenroll .profile-grid {
   display: grid;
-  grid-template-columns: 120px minmax(180px, 1fr);
+  grid-template-columns: minmax(100px, 0.4fr) minmax(180px, 1fr);
   gap: 10px;
   margin-bottom: 10px;
+  min-width: 0;
 }
 
 .rolenroll .resource-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 10px;
+  min-width: 0;
 }
 
 .rolenroll label {
   display: grid;
   gap: 4px;
   font-weight: 700;
+  min-width: 0;
 }
 
 .rolenroll .resource-inputs {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-columns: minmax(52px, 1fr) auto minmax(52px, 1fr);
   gap: 6px;
   align-items: center;
+  min-width: 0;
 }
 
 .rolenroll .sheet-tabs {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin: 14px 0;
   border-top: 1px solid #d6d1c5;
@@ -61,10 +93,13 @@
 }
 
 .rolenroll .sheet-tabs .item {
+  flex: 1 1 110px;
+  min-width: 0;
   padding: 6px 10px;
   border-radius: 6px;
   color: #173a3f;
   font-weight: 800;
+  text-align: center;
 }
 
 .rolenroll .sheet-tabs .item.active {
@@ -79,13 +114,14 @@
 
 .rolenroll .attribute-row {
   display: grid;
-  grid-template-columns: minmax(110px, 1fr) auto;
+  grid-template-columns: minmax(140px, 1fr) minmax(150px, auto);
   gap: 8px 12px;
   align-items: center;
   padding: 10px;
   border: 1px solid #d6d1c5;
   border-radius: 8px;
   background: #ffffff;
+  min-width: 0;
 }
 
 .rolenroll .attribute-name {
@@ -106,13 +142,14 @@
 
 .rolenroll .roll-controls {
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) 100px 100px;
+  grid-template-columns: minmax(260px, 1fr) minmax(96px, 0.25fr) minmax(96px, 0.25fr);
   gap: 10px;
   margin-bottom: 12px;
   padding: 10px;
   border: 1px solid #d6d1c5;
   border-radius: 8px;
   background: #f8f3e7;
+  min-width: 0;
 }
 
 .rolenroll .special-dice-builder {
@@ -122,6 +159,7 @@
 
 .rolenroll .special-dice-builder-header {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: center;
   justify-content: space-between;
@@ -149,6 +187,7 @@
 
 .rolenroll .special-die-card {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: center;
   justify-content: space-between;
@@ -161,7 +200,7 @@
 .rolenroll .special-die-card-faces {
   display: flex;
   gap: 4px;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
 }
 
 .rolenroll .special-die-face {
@@ -206,6 +245,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 5px;
+  justify-content: flex-end;
+  min-width: 0;
 }
 
 .rolenroll .stat-dot {
@@ -223,6 +264,7 @@
 
 .rolenroll .stat-bonus {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   align-items: center;
   color: #5f5b50;
@@ -236,6 +278,7 @@
 
 .rolenroll .attribute-row > button {
   min-height: 30px;
+  white-space: normal;
 }
 
 .rolenroll .ability-groups,
@@ -273,8 +316,9 @@
 }
 
 .rolenroll .skill-row {
-  grid-template-columns: minmax(150px, 1fr) auto;
+  grid-template-columns: minmax(150px, 1fr) minmax(140px, auto);
   align-items: center;
+  min-width: 0;
 }
 
 .rolenroll .skill-name {
@@ -304,7 +348,7 @@
 }
 
 .rolenroll .extra-skill-row {
-  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, auto) minmax(120px, auto);
   align-items: end;
 }
 
@@ -364,6 +408,7 @@
 
 .rolenroll .extra-skill-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
   grid-column: 1 / -1;
@@ -383,6 +428,7 @@
 
 .rolenroll .inventory-panel-header {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: center;
   justify-content: space-between;
@@ -505,6 +551,7 @@
 
 .rolenroll .status-entry-actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: flex-end;
 }
 
@@ -541,11 +588,26 @@
   border-radius: 6px;
   background: #ffffff;
   font-weight: 800;
+  white-space: normal;
 }
 
 .rolenroll button:hover {
   background: #dcebea;
   border-color: #23545a;
+}
+
+@media (max-width: 1000px) {
+  .rolenroll .attribute-grid,
+  .rolenroll .skill-grid,
+  .rolenroll .extra-skill-grid,
+  .rolenroll .inventory-layout,
+  .rolenroll .status-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .rolenroll .roll-controls {
+    grid-template-columns: minmax(0, 1fr) repeat(2, minmax(96px, 0.35fr));
+  }
 }
 
 @media (max-width: 720px) {

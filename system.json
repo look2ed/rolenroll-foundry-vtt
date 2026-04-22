@@ -2,7 +2,7 @@
   "id": "rolenroll",
   "title": "Role & Roll",
   "description": "Unofficial Foundry VTT system for Role & Roll.",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "compatibility": {
     "minimum": 12,
     "verified": 14
@@ -24,6 +24,16 @@
       "lang": "en",
       "name": "English",
       "path": "lang/en.json"
+    },
+    {
+      "lang": "fr",
+      "name": "French",
+      "path": "lang/fr.json"
+    },
+    {
+      "lang": "th",
+      "name": "Thai",
+      "path": "lang/th.json"
     }
   ],
   "documentTypes": {
