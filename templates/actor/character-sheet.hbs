@@ -136,56 +136,22 @@
 
       <div class="extra-skill-grid">
         {{#each extraSkillSlots}}
-          <section class="extra-skill-row" data-extra-skill-row="{{slot}}">
-            <label class="extra-skill-name">
-              <span>{{rolenrollLocalize "ROLENROLL.ExtraSkill.Name"}}</span>
-              <input type="text" name="system.extraSkills.{{slot}}.name" value="{{name}}">
-            </label>
-            <input type="hidden" name="system.extraSkills.{{slot}}.points" value="{{points}}">
-            <input type="hidden" name="system.extraSkills.{{slot}}.active" value="true">
-            <input type="hidden" name="system.extraSkills.{{slot}}.dependencies" value="{{dependencies}}">
-
-            <div class="extra-skill-dependencies">
-              <span>{{rolenrollLocalize "ROLENROLL.ExtraSkill.LinkedStats"}}</span>
-              <div class="dependency-grid">
-                {{#each dependencyOptions}}
-                  <label class="dependency-option">
-                    <input
-                      type="checkbox"
-                      value="{{key}}"
-                      data-extra-skill-dependency="{{../slot}}"
-                      {{#if checked}}checked{{/if}}
-                    >
-                    <span>{{label}}</span>
-                  </label>
-                {{/each}}
+          <article class="compact-card extra-skill-card" data-extra-skill-row="{{slot}}">
+            <div class="compact-card-main">
+              <strong>{{#if name}}{{name}}{{else}}{{rolenrollLocalize "ROLENROLL.ExtraSkill.Name"}}{{/if}}</strong>
+              <div class="compact-card-meta">
+                <span>{{points}} {{rolenrollLocalize "ROLENROLL.Roll.TotalDice"}}</span>
+                {{#if bonus}}<span>{{rolenrollLocalize "ROLENROLL.Roll.AttributeSucceed"}}</span>{{/if}}
+                {{#each dependencyLabels}}<span>{{this}}</span>{{/each}}
               </div>
+              {{#if details}}<p>{{details}}</p>{{/if}}
             </div>
-
-            <div class="stat-dots extra-skill-dots" aria-label="{{name}}">
-              {{#each dots}}
-                <button
-                  type="button"
-                  class="stat-dot {{#if active}}active{{/if}}"
-                  data-extra-skill-dot="{{../slot}}"
-                  data-value="{{value}}"
-                  aria-label="{{../name}} {{value}}"
-                ></button>
-              {{/each}}
-            </div>
-            <label class="stat-bonus">
-              <input type="checkbox" name="system.extraSkills.{{slot}}.bonus" {{#if bonus}}checked{{/if}}>
-              <span>{{rolenrollLocalize "ROLENROLL.Roll.AttributeSucceed"}}</span>
-            </label>
-            <label class="extra-skill-details">
-              <span>{{rolenrollLocalize "ROLENROLL.ExtraSkill.Details"}}</span>
-              <textarea name="system.extraSkills.{{slot}}.details">{{details}}</textarea>
-            </label>
-            <div class="extra-skill-actions">
+            <div class="compact-card-actions">
               <button type="button" data-roll-extra-skill="{{slot}}">{{rolenrollLocalize "ROLENROLL.Action.RollD6"}}</button>
+              <button type="button" data-edit-extra-skill="{{slot}}">{{rolenrollLocalize "ROLENROLL.Action.Edit"}}</button>
               <button type="button" data-remove-extra-skill="{{slot}}">{{rolenrollLocalize "ROLENROLL.Action.Remove"}}</button>
             </div>
-          </section>
+          </article>
         {{else}}
           <p class="empty-list">{{rolenrollLocalize "ROLENROLL.ExtraSkill.Empty"}}</p>
         {{/each}}
@@ -202,10 +168,10 @@
 
           <div class="inventory-entry-list">
             {{#each equipmentSlots}}
-              <article class="gear-card" data-equipment-entry="{{slot}}">
-                <div class="gear-card-main">
+              <article class="compact-card" data-equipment-entry="{{slot}}">
+                <div class="compact-card-main">
                   <strong>{{#if name}}{{name}}{{else}}{{rolenrollLocalize "ROLENROLL.Inventory.GearName"}}{{/if}}</strong>
-                  <div class="gear-card-meta">
+                  <div class="compact-card-meta">
                     <span>{{locationLabel}}</span>
                     {{#if damage}}<span>{{rolenrollLocalize "ROLENROLL.Inventory.Damage"}} {{damage}}</span>{{/if}}
                     {{#if charge}}<span>{{rolenrollLocalize "ROLENROLL.Inventory.Charge"}} {{charge}}</span>{{/if}}
@@ -214,7 +180,7 @@
                   </div>
                   {{#if details}}<p>{{details}}</p>{{/if}}
                 </div>
-                <div class="gear-card-actions">
+                <div class="compact-card-actions">
                   <button type="button" data-edit-equipment="{{slot}}">{{rolenrollLocalize "ROLENROLL.Action.Edit"}}</button>
                   <button type="button" data-remove-equipment="{{slot}}">{{rolenrollLocalize "ROLENROLL.Action.Remove"}}</button>
                 </div>
@@ -233,22 +199,17 @@
 
           <div class="inventory-entry-list">
             {{#each inventoryItems}}
-              <article class="inventory-entry" data-inventory-item="{{slot}}">
-                <input type="hidden" name="system.inventoryItems.{{slot}}.active" value="true">
-                <label class="inventory-entry-name">
-                  <span>{{rolenrollLocalize "ROLENROLL.Inventory.ItemName"}}</span>
-                  <input type="text" name="system.inventoryItems.{{slot}}.name" value="{{name}}">
-                </label>
-                <label class="inventory-entry-quantity">
-                  <span>{{rolenrollLocalize "ROLENROLL.Inventory.Quantity"}}</span>
-                  <input type="number" name="system.inventoryItems.{{slot}}.quantity" value="{{quantity}}" min="0">
-                </label>
-                <label class="inventory-entry-details">
-                  <span>{{rolenrollLocalize "ROLENROLL.Inventory.Details"}}</span>
-                  <textarea name="system.inventoryItems.{{slot}}.details">{{details}}</textarea>
-                </label>
-                <div class="inventory-entry-actions">
+              <article class="compact-card item-card" data-inventory-item="{{slot}}">
+                <div class="compact-card-main">
+                  <strong>{{#if name}}{{name}}{{else}}{{rolenrollLocalize "ROLENROLL.Inventory.ItemName"}}{{/if}}</strong>
+                  <div class="compact-card-meta">
+                    <span>{{rolenrollLocalize "ROLENROLL.Inventory.Quantity"}} {{quantity}}</span>
+                  </div>
+                  {{#if details}}<p>{{details}}</p>{{/if}}
+                </div>
+                <div class="compact-card-actions">
                   <button type="button" data-use-inventory-item="{{slot}}">{{rolenrollLocalize "ROLENROLL.Inventory.Use"}}</button>
+                  <button type="button" data-edit-inventory-item="{{slot}}">{{rolenrollLocalize "ROLENROLL.Action.Edit"}}</button>
                   <button type="button" data-remove-inventory-item="{{slot}}">{{rolenrollLocalize "ROLENROLL.Action.Remove"}}</button>
                 </div>
               </article>
@@ -270,49 +231,17 @@
           <h2>{{rolenrollLocalize "ROLENROLL.Status.Buffs"}}</h2>
           <div class="status-entry-list">
             {{#each statusBuffs}}
-              <article class="status-entry status-entry-buff" data-status-entry="{{slot}}">
-                <input type="hidden" name="system.statusEffects.{{slot}}.active" value="true">
-                <label class="status-entry-name">
-                  <span>{{rolenrollLocalize "ROLENROLL.Status.Name"}}</span>
-                  <input type="text" name="system.statusEffects.{{slot}}.name" value="{{name}}">
-                </label>
-                <label>
-                  <span>{{rolenrollLocalize "ROLENROLL.Status.Category"}}</span>
-                  <select name="system.statusEffects.{{slot}}.category">
-                    {{#each categoryOptions}}
-                      <option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>
-                    {{/each}}
-                  </select>
-                </label>
-                <label>
-                  <span>{{rolenrollLocalize "ROLENROLL.Status.Duration"}}</span>
-                  <select name="system.statusEffects.{{slot}}.durationKind">
-                    {{#each durationKindOptions}}
-                      <option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>
-                    {{/each}}
-                  </select>
-                </label>
-                <label>
-                  <span>{{rolenrollLocalize "ROLENROLL.Status.Until"}}</span>
-                  <select name="system.statusEffects.{{slot}}.durationMode">
-                    {{#each durationModeOptions}}
-                      <option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>
-                    {{/each}}
-                  </select>
-                </label>
-                <label>
-                  <span>{{rolenrollLocalize "ROLENROLL.Status.Turns"}}</span>
-                  <input type="number" name="system.statusEffects.{{slot}}.durationTurns" value="{{durationTurns}}" min="0">
-                </label>
-                <div class="status-entry-meta">
-                  <span>{{categoryLabel}}</span>
-                  <span>{{durationText}}</span>
+              <article class="compact-card status-entry-buff" data-status-entry="{{slot}}">
+                <div class="compact-card-main">
+                  <strong>{{#if name}}{{name}}{{else}}{{rolenrollLocalize "ROLENROLL.Status.Untitled"}}{{/if}}</strong>
+                  <div class="compact-card-meta">
+                    <span>{{categoryLabel}}</span>
+                    <span>{{durationText}}</span>
+                  </div>
+                  {{#if details}}<p>{{details}}</p>{{/if}}
                 </div>
-                <label class="status-entry-details">
-                  <span>{{rolenrollLocalize "ROLENROLL.Status.Details"}}</span>
-                  <textarea name="system.statusEffects.{{slot}}.details">{{details}}</textarea>
-                </label>
-                <div class="status-entry-actions">
+                <div class="compact-card-actions">
+                  <button type="button" data-edit-status="{{slot}}">{{rolenrollLocalize "ROLENROLL.Action.Edit"}}</button>
                   <button type="button" data-remove-status="{{slot}}">{{rolenrollLocalize "ROLENROLL.Action.Remove"}}</button>
                 </div>
               </article>
@@ -326,49 +255,17 @@
           <h2>{{rolenrollLocalize "ROLENROLL.Status.Debuffs"}}</h2>
           <div class="status-entry-list">
             {{#each statusDebuffs}}
-              <article class="status-entry status-entry-debuff" data-status-entry="{{slot}}">
-                <input type="hidden" name="system.statusEffects.{{slot}}.active" value="true">
-                <label class="status-entry-name">
-                  <span>{{rolenrollLocalize "ROLENROLL.Status.Name"}}</span>
-                  <input type="text" name="system.statusEffects.{{slot}}.name" value="{{name}}">
-                </label>
-                <label>
-                  <span>{{rolenrollLocalize "ROLENROLL.Status.Category"}}</span>
-                  <select name="system.statusEffects.{{slot}}.category">
-                    {{#each categoryOptions}}
-                      <option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>
-                    {{/each}}
-                  </select>
-                </label>
-                <label>
-                  <span>{{rolenrollLocalize "ROLENROLL.Status.Duration"}}</span>
-                  <select name="system.statusEffects.{{slot}}.durationKind">
-                    {{#each durationKindOptions}}
-                      <option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>
-                    {{/each}}
-                  </select>
-                </label>
-                <label>
-                  <span>{{rolenrollLocalize "ROLENROLL.Status.Until"}}</span>
-                  <select name="system.statusEffects.{{slot}}.durationMode">
-                    {{#each durationModeOptions}}
-                      <option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>
-                    {{/each}}
-                  </select>
-                </label>
-                <label>
-                  <span>{{rolenrollLocalize "ROLENROLL.Status.Turns"}}</span>
-                  <input type="number" name="system.statusEffects.{{slot}}.durationTurns" value="{{durationTurns}}" min="0">
-                </label>
-                <div class="status-entry-meta">
-                  <span>{{categoryLabel}}</span>
-                  <span>{{durationText}}</span>
+              <article class="compact-card status-entry-debuff" data-status-entry="{{slot}}">
+                <div class="compact-card-main">
+                  <strong>{{#if name}}{{name}}{{else}}{{rolenrollLocalize "ROLENROLL.Status.Untitled"}}{{/if}}</strong>
+                  <div class="compact-card-meta">
+                    <span>{{categoryLabel}}</span>
+                    <span>{{durationText}}</span>
+                  </div>
+                  {{#if details}}<p>{{details}}</p>{{/if}}
                 </div>
-                <label class="status-entry-details">
-                  <span>{{rolenrollLocalize "ROLENROLL.Status.Details"}}</span>
-                  <textarea name="system.statusEffects.{{slot}}.details">{{details}}</textarea>
-                </label>
-                <div class="status-entry-actions">
+                <div class="compact-card-actions">
+                  <button type="button" data-edit-status="{{slot}}">{{rolenrollLocalize "ROLENROLL.Action.Edit"}}</button>
                   <button type="button" data-remove-status="{{slot}}">{{rolenrollLocalize "ROLENROLL.Action.Remove"}}</button>
                 </div>
               </article>

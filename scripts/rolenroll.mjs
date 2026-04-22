@@ -133,6 +133,7 @@ const STATUS_DURATION_MODES = ["turns", "skill-check"];
 
 const FALLBACK_LOCALIZATION = {
   "Cancel": "Cancel",
+  "ROLENROLL.Action.Edit": "Edit",
   "ROLENROLL.Action.Roll": "Roll",
   "ROLENROLL.Action.RollD6": "Roll Pool",
   "ROLENROLL.Action.Remove": "Remove",
@@ -161,9 +162,11 @@ const FALLBACK_LOCALIZATION = {
   "ROLENROLL.ExtraSkill.Add": "+ Add Extra Skill",
   "ROLENROLL.ExtraSkill.Details": "Details",
   "ROLENROLL.ExtraSkill.Empty": "No extra skills yet.",
+  "ROLENROLL.ExtraSkill.Edit": "Edit Extra Skill",
   "ROLENROLL.ExtraSkill.LinkedStats": "Linked Stats",
   "ROLENROLL.ExtraSkill.Name": "Extra Skill",
   "ROLENROLL.ExtraSkill.NoSlots": "No empty extra skill slots are available.",
+  "ROLENROLL.ExtraSkill.Save": "Save Extra Skill",
   "ROLENROLL.ExtraSkill.Untitled": "Extra Skill Roll",
   "ROLENROLL.Inventory.AddGear": "+ Add Gear",
   "ROLENROLL.Inventory.AddItem": "+ Add Item",
@@ -173,6 +176,7 @@ const FALLBACK_LOCALIZATION = {
   "ROLENROLL.Inventory.Defense": "DEF",
   "ROLENROLL.Inventory.Equipment": "Equipment",
   "ROLENROLL.Inventory.EditGear": "Edit Gear",
+  "ROLENROLL.Inventory.EditItem": "Edit Item",
   "ROLENROLL.Inventory.GearName": "Gear",
   "ROLENROLL.Inventory.ItemName": "Item",
   "ROLENROLL.Inventory.Items": "Inventory",
@@ -186,6 +190,7 @@ const FALLBACK_LOCALIZATION = {
   "ROLENROLL.Inventory.NoItemSlots": "No empty inventory item slots are available.",
   "ROLENROLL.Inventory.Quantity": "Qty",
   "ROLENROLL.Inventory.SaveGear": "Save Gear",
+  "ROLENROLL.Inventory.SaveItem": "Save Item",
   "ROLENROLL.Inventory.Toughness": "TOU",
   "ROLENROLL.Inventory.UntitledItem": "Inventory Item",
   "ROLENROLL.Inventory.Use": "Use",
@@ -274,11 +279,14 @@ const FALLBACK_LOCALIZATION = {
   "ROLENROLL.Status.Duration.temporary": "Temporary",
   "ROLENROLL.Status.Duration.turns": "Turns",
   "ROLENROLL.Status.Duration.turnsText": "{turns} turn(s)",
+  "ROLENROLL.Status.Edit": "Edit Status",
   "ROLENROLL.Status.Name": "Name",
   "ROLENROLL.Status.NoBuffs": "No buffs yet.",
   "ROLENROLL.Status.NoDebuffs": "No debuffs yet.",
   "ROLENROLL.Status.NoSlots": "No empty status slots are available.",
+  "ROLENROLL.Status.Save": "Save Status",
   "ROLENROLL.Status.Turns": "Turns",
+  "ROLENROLL.Status.Untitled": "Status",
   "ROLENROLL.Status.Until": "Until",
   "ROLENROLL.Tab.Attributes": "Attributes",
   "ROLENROLL.Tab.ExtraSkill": "Extra Skill",
@@ -646,6 +654,20 @@ function buildDependencyValue(ids) {
   return Array.from(new Set(ids.filter(Boolean))).join(",");
 }
 
+function getDependencyLabel(dependencyId) {
+  if (dependencyId.startsWith("attribute:")) {
+    const key = dependencyId.slice("attribute:".length);
+    return localize(`ROLENROLL.Attribute.${key}`);
+  }
+
+  if (dependencyId.startsWith("skill:")) {
+    const key = dependencyId.slice("skill:".length);
+    return localize(`ROLENROLL.Skill.${key}`);
+  }
+
+  return dependencyId;
+}
+
 function isEntryActive(entry) {
   return Boolean(
     entry?.active ||
@@ -1000,6 +1022,7 @@ class RolenrollActorSheet extends ActorSheet {
         bonus: Boolean(extraSkill.bonus),
         details: extraSkill.details ?? "",
         dependencies: buildDependencyValue(dependencies),
+        dependencyLabels: dependencies.map(getDependencyLabel),
         dots: buildDots(Number(extraSkill.points ?? 0) || 0),
         dependencyOptions: allDependencyOptions.map((option) => ({
           ...option,
@@ -1090,15 +1113,18 @@ class RolenrollActorSheet extends ActorSheet {
     html.find("[data-extra-skill-dot]").on("click", this.#onExtraSkillDot.bind(this));
     html.find("[data-roll-extra-skill]").on("click", this.#onExtraSkillRoll.bind(this));
     html.find("[data-add-extra-skill]").on("click", this.#onAddExtraSkill.bind(this));
+    html.find("[data-edit-extra-skill]").on("click", this.#onEditExtraSkill.bind(this));
     html.find("[data-remove-extra-skill]").on("click", this.#onRemoveExtraSkill.bind(this));
     html.find("[data-extra-skill-dependency]").on("change", this.#onExtraSkillDependency.bind(this));
     html.find("[data-add-equipment]").on("click", this.#onAddEquipment.bind(this));
     html.find("[data-edit-equipment]").on("click", this.#onEditEquipment.bind(this));
     html.find("[data-remove-equipment]").on("click", this.#onRemoveEquipment.bind(this));
     html.find("[data-add-inventory-item]").on("click", this.#onAddInventoryItem.bind(this));
+    html.find("[data-edit-inventory-item]").on("click", this.#onEditInventoryItem.bind(this));
     html.find("[data-remove-inventory-item]").on("click", this.#onRemoveInventoryItem.bind(this));
     html.find("[data-use-inventory-item]").on("click", this.#onUseInventoryItem.bind(this));
     html.find("[data-add-status]").on("click", this.#onAddStatus.bind(this));
+    html.find("[data-edit-status]").on("click", this.#onEditStatus.bind(this));
     html.find("[data-remove-status]").on("click", this.#onRemoveStatus.bind(this));
   }
 
@@ -1153,6 +1179,87 @@ class RolenrollActorSheet extends ActorSheet {
     }
 
     await this.actor.update({ [`system.extraSkills.${slot}.active`]: true });
+    this.#openExtraSkillDialog(slot);
+  }
+
+  #onEditExtraSkill(event) {
+    event.preventDefault();
+
+    const slot = event.currentTarget.dataset.editExtraSkill;
+    if (!EXTRA_SKILL_SLOTS.includes(slot)) return;
+
+    this.#openExtraSkillDialog(slot);
+  }
+
+  #openExtraSkillDialog(slot) {
+    const extraSkill = this.actor.system.extraSkills?.[slot] ?? {};
+    const dependencies = parseDependencyIds(extraSkill.dependencies);
+    const dependencyOptions = ATTRIBUTE_KEYS.map((key) => ({
+      key: `attribute:${key}`,
+      label: `${localize(`ROLENROLL.Attribute.${key}`)} (${localize(`ROLENROLL.AttributeCode.${key}`)})`
+    })).concat(GENERAL_SKILLS.map((skill) => ({
+      key: `skill:${skill.key}`,
+      label: localize(`ROLENROLL.Skill.${skill.key}`)
+    })));
+    const dependencyCheckboxes = dependencyOptions.map((option) => `
+      <label class="dependency-option">
+        <input type="checkbox" name="dependencies" value="${escapeHtml(option.key)}" ${dependencies.includes(option.key) ? "checked" : ""}>
+        <span>${escapeHtml(option.label)}</span>
+      </label>
+    `).join("");
+
+    const content = `
+      <form class="rolenroll-extra-skill-dialog">
+        <div class="form-group">
+          <label>${localize("ROLENROLL.ExtraSkill.Name")}</label>
+          <input type="text" name="name" value="${escapeHtml(extraSkill.name ?? "")}" autofocus>
+        </div>
+        <div class="form-group">
+          <label>${localize("ROLENROLL.Roll.TotalDice")}</label>
+          <input type="number" name="points" value="${Number(extraSkill.points ?? 0) || 0}" min="0" max="6">
+        </div>
+        <div class="form-group">
+          <label class="stat-bonus">
+            <input type="checkbox" name="bonus" ${extraSkill.bonus ? "checked" : ""}>
+            <span>${localize("ROLENROLL.Roll.AttributeSucceed")}</span>
+          </label>
+        </div>
+        <div class="form-group">
+          <label>${localize("ROLENROLL.ExtraSkill.LinkedStats")}</label>
+          <div class="dependency-grid">${dependencyCheckboxes}</div>
+        </div>
+        <div class="form-group">
+          <label>${localize("ROLENROLL.ExtraSkill.Details")}</label>
+          <textarea name="details">${escapeHtml(extraSkill.details ?? "")}</textarea>
+        </div>
+      </form>
+    `;
+
+    new Dialog({
+      title: localize("ROLENROLL.ExtraSkill.Edit"),
+      content,
+      buttons: {
+        save: {
+          label: localize("ROLENROLL.ExtraSkill.Save"),
+          callback: async (html) => {
+            const form = html[0]?.querySelector("form");
+            const formData = new FormData(form);
+            await this.actor.update({
+              [`system.extraSkills.${slot}.active`]: true,
+              [`system.extraSkills.${slot}.name`]: String(formData.get("name") ?? "").trim(),
+              [`system.extraSkills.${slot}.points`]: clamp(Number(formData.get("points") ?? 0) || 0, 0, 6),
+              [`system.extraSkills.${slot}.dependencies`]: buildDependencyValue(formData.getAll("dependencies").map(String)),
+              [`system.extraSkills.${slot}.bonus`]: formData.has("bonus"),
+              [`system.extraSkills.${slot}.details`]: String(formData.get("details") ?? "").trim()
+            });
+          }
+        },
+        cancel: {
+          label: localize("Cancel")
+        }
+      },
+      default: "save"
+    }).render(true);
   }
 
   async #onRemoveExtraSkill(event) {
@@ -1307,6 +1414,60 @@ class RolenrollActorSheet extends ActorSheet {
     }
 
     await this.actor.update({ [`system.inventoryItems.${slot}.active`]: true });
+    this.#openInventoryItemDialog(slot);
+  }
+
+  #onEditInventoryItem(event) {
+    event.preventDefault();
+
+    const slot = event.currentTarget.dataset.editInventoryItem;
+    if (!INVENTORY_ITEM_SLOTS.includes(slot)) return;
+
+    this.#openInventoryItemDialog(slot);
+  }
+
+  #openInventoryItemDialog(slot) {
+    const item = this.actor.system.inventoryItems?.[slot] ?? {};
+    const content = `
+      <form class="rolenroll-inventory-item-dialog">
+        <div class="form-group">
+          <label>${localize("ROLENROLL.Inventory.ItemName")}</label>
+          <input type="text" name="name" value="${escapeHtml(item.name ?? "")}" autofocus>
+        </div>
+        <div class="form-group">
+          <label>${localize("ROLENROLL.Inventory.Quantity")}</label>
+          <input type="number" name="quantity" value="${Number(item.quantity ?? 1) || 0}" min="0">
+        </div>
+        <div class="form-group">
+          <label>${localize("ROLENROLL.Inventory.Details")}</label>
+          <textarea name="details">${escapeHtml(item.details ?? "")}</textarea>
+        </div>
+      </form>
+    `;
+
+    new Dialog({
+      title: localize("ROLENROLL.Inventory.EditItem"),
+      content,
+      buttons: {
+        save: {
+          label: localize("ROLENROLL.Inventory.SaveItem"),
+          callback: async (html) => {
+            const form = html[0]?.querySelector("form");
+            const formData = new FormData(form);
+            await this.actor.update({
+              [`system.inventoryItems.${slot}.active`]: true,
+              [`system.inventoryItems.${slot}.name`]: String(formData.get("name") ?? "").trim(),
+              [`system.inventoryItems.${slot}.quantity`]: Math.max(0, Number(formData.get("quantity") ?? 0) || 0),
+              [`system.inventoryItems.${slot}.details`]: String(formData.get("details") ?? "").trim()
+            });
+          }
+        },
+        cancel: {
+          label: localize("Cancel")
+        }
+      },
+      default: "save"
+    }).render(true);
   }
 
   async #onRemoveInventoryItem(event) {
@@ -1367,6 +1528,87 @@ class RolenrollActorSheet extends ActorSheet {
       [`system.statusEffects.${slot}.durationMode`]: "turns",
       [`system.statusEffects.${slot}.durationTurns`]: 1
     });
+    this.#openStatusDialog(slot);
+  }
+
+  #onEditStatus(event) {
+    event.preventDefault();
+
+    const slot = event.currentTarget.dataset.editStatus;
+    if (!STATUS_SLOTS.includes(slot)) return;
+
+    this.#openStatusDialog(slot);
+  }
+
+  #openStatusDialog(slot) {
+    const entry = this.actor.system.statusEffects?.[slot] ?? {};
+    const category = getStatusCategory(entry.category);
+    const durationKind = getStatusDurationKind(entry.durationKind);
+    const durationMode = getStatusDurationMode(entry.durationMode);
+    const categoryOptions = STATUS_CATEGORIES.map((key) => `
+      <option value="${key}" ${key === category ? "selected" : ""}>${localize(`ROLENROLL.Status.Category.${key}`)}</option>
+    `).join("");
+    const durationKindOptions = STATUS_DURATION_KINDS.map((key) => `
+      <option value="${key}" ${key === durationKind ? "selected" : ""}>${localize(`ROLENROLL.Status.Duration.${key}`)}</option>
+    `).join("");
+    const durationModeOptions = STATUS_DURATION_MODES.map((key) => `
+      <option value="${key}" ${key === durationMode ? "selected" : ""}>${localize(`ROLENROLL.Status.Duration.${key}`)}</option>
+    `).join("");
+    const content = `
+      <form class="rolenroll-status-dialog">
+        <div class="form-group">
+          <label>${localize("ROLENROLL.Status.Name")}</label>
+          <input type="text" name="name" value="${escapeHtml(entry.name ?? "")}" autofocus>
+        </div>
+        <div class="form-group">
+          <label>${localize("ROLENROLL.Status.Category")}</label>
+          <select name="category">${categoryOptions}</select>
+        </div>
+        <div class="form-group">
+          <label>${localize("ROLENROLL.Status.Duration")}</label>
+          <select name="durationKind">${durationKindOptions}</select>
+        </div>
+        <div class="form-group">
+          <label>${localize("ROLENROLL.Status.Until")}</label>
+          <select name="durationMode">${durationModeOptions}</select>
+        </div>
+        <div class="form-group">
+          <label>${localize("ROLENROLL.Status.Turns")}</label>
+          <input type="number" name="durationTurns" value="${Math.max(0, Number(entry.durationTurns ?? 1) || 0)}" min="0">
+        </div>
+        <div class="form-group">
+          <label>${localize("ROLENROLL.Status.Details")}</label>
+          <textarea name="details">${escapeHtml(entry.details ?? "")}</textarea>
+        </div>
+      </form>
+    `;
+
+    new Dialog({
+      title: localize("ROLENROLL.Status.Edit"),
+      content,
+      buttons: {
+        save: {
+          label: localize("ROLENROLL.Status.Save"),
+          callback: async (html) => {
+            const form = html[0]?.querySelector("form");
+            const formData = new FormData(form);
+            await this.actor.update({
+              [`system.statusEffects.${slot}.active`]: true,
+              [`system.statusEffects.${slot}.name`]: String(formData.get("name") ?? "").trim(),
+              [`system.statusEffects.${slot}.category`]: getStatusCategory(String(formData.get("category") ?? "buff")),
+              [`system.statusEffects.${slot}.durationKind`]: getStatusDurationKind(String(formData.get("durationKind") ?? "permanent")),
+              [`system.statusEffects.${slot}.durationMode`]: getStatusDurationMode(String(formData.get("durationMode") ?? "turns")),
+              [`system.statusEffects.${slot}.durationTurns`]: Math.max(0, Number(formData.get("durationTurns") ?? 0) || 0),
+              [`system.statusEffects.${slot}.details`]: String(formData.get("details") ?? "").trim()
+            });
+          }
+        },
+        cancel: {
+          label: localize("Cancel")
+        }
+      },
+      default: "save"
+    }).render(true);
   }
 
   async #onRemoveStatus(event) {
