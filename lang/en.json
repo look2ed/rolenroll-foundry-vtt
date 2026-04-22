@@ -1,0 +1,18 @@
+{
+  "ROLENROLL.Action.Roll": "Roll",
+  "ROLENROLL.Actor.Name": "Character Name",
+  "ROLENROLL.Attribute.charisma": "Charisma",
+  "ROLENROLL.Attribute.dexterity": "Dexterity",
+  "ROLENROLL.Attribute.intelligence": "Intelligence",
+  "ROLENROLL.Attribute.strength": "Strength",
+  "ROLENROLL.Field.Equipment": "Equipment",
+  "ROLENROLL.Field.Statuses": "Statuses",
+  "ROLENROLL.Resource.Defense": "Defense",
+  "ROLENROLL.Resource.Health": "Health",
+  "ROLENROLL.Resource.Willpower": "Willpower",
+  "ROLENROLL.Roll.Attribute": "{attribute} Roll",
+  "ROLENROLL.Sheet.Character": "Role & Roll Character Sheet",
+  "ROLENROLL.Tab.Attributes": "Attributes",
+  "ROLENROLL.Tab.Gear": "Gear",
+  "ROLENROLL.Tab.Notes": "Notes"
+}

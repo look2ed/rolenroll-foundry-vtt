@@ -1,0 +1,17 @@
+.DS_Store
+Thumbs.db
+
+# OS/editor scratch files
+*.swp
+*.swo
+~$*
+
+# Dependency/build output if this repo later adds tooling
+node_modules/
+dist/
+build/
+
+# Foundry local data and generated packages
+worlds/
+Data/
+*.zip

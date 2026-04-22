@@ -1,0 +1,80 @@
+<form class="{{cssClass}}" autocomplete="off">
+  <header class="sheet-header">
+    <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" height="100" width="100">
+    <div class="header-fields">
+      <h1>
+        <input name="name" type="text" value="{{actor.name}}" placeholder="{{localize 'ROLENROLL.Actor.Name'}}">
+      </h1>
+      <div class="resource-grid">
+        <label>
+          <span>{{localize "ROLENROLL.Resource.Health"}}</span>
+          <span class="resource-inputs">
+            <input type="number" name="system.resources.health.value" value="{{system.resources.health.value}}">
+            <span>/</span>
+            <input type="number" name="system.resources.health.max" value="{{system.resources.health.max}}">
+          </span>
+        </label>
+        <label>
+          <span>{{localize "ROLENROLL.Resource.Willpower"}}</span>
+          <span class="resource-inputs">
+            <input type="number" name="system.resources.willpower.value" value="{{system.resources.willpower.value}}">
+            <span>/</span>
+            <input type="number" name="system.resources.willpower.max" value="{{system.resources.willpower.max}}">
+          </span>
+        </label>
+        <label>
+          <span>{{localize "ROLENROLL.Resource.Defense"}}</span>
+          <input type="number" name="system.defense" value="{{system.defense}}">
+        </label>
+      </div>
+    </div>
+  </header>
+
+  <nav class="sheet-tabs tabs" data-group="primary">
+    <a class="item" data-tab="attributes">{{localize "ROLENROLL.Tab.Attributes"}}</a>
+    <a class="item" data-tab="gear">{{localize "ROLENROLL.Tab.Gear"}}</a>
+    <a class="item" data-tab="notes">{{localize "ROLENROLL.Tab.Notes"}}</a>
+  </nav>
+
+  <section class="sheet-body">
+    <div class="tab" data-group="primary" data-tab="attributes">
+      <div class="attribute-grid">
+        <label class="attribute-row">
+          <span>{{localize "ROLENROLL.Attribute.strength"}}</span>
+          <input type="number" name="system.attributes.strength" value="{{system.attributes.strength}}">
+          <button type="button" data-roll-attribute="strength">{{localize "ROLENROLL.Action.Roll"}}</button>
+        </label>
+        <label class="attribute-row">
+          <span>{{localize "ROLENROLL.Attribute.dexterity"}}</span>
+          <input type="number" name="system.attributes.dexterity" value="{{system.attributes.dexterity}}">
+          <button type="button" data-roll-attribute="dexterity">{{localize "ROLENROLL.Action.Roll"}}</button>
+        </label>
+        <label class="attribute-row">
+          <span>{{localize "ROLENROLL.Attribute.intelligence"}}</span>
+          <input type="number" name="system.attributes.intelligence" value="{{system.attributes.intelligence}}">
+          <button type="button" data-roll-attribute="intelligence">{{localize "ROLENROLL.Action.Roll"}}</button>
+        </label>
+        <label class="attribute-row">
+          <span>{{localize "ROLENROLL.Attribute.charisma"}}</span>
+          <input type="number" name="system.attributes.charisma" value="{{system.attributes.charisma}}">
+          <button type="button" data-roll-attribute="charisma">{{localize "ROLENROLL.Action.Roll"}}</button>
+        </label>
+      </div>
+    </div>
+
+    <div class="tab" data-group="primary" data-tab="gear">
+      <label>
+        <span>{{localize "ROLENROLL.Field.Equipment"}}</span>
+        <textarea name="system.equipment">{{system.equipment}}</textarea>
+      </label>
+      <label>
+        <span>{{localize "ROLENROLL.Field.Statuses"}}</span>
+        <textarea name="system.statuses">{{system.statuses}}</textarea>
+      </label>
+    </div>
+
+    <div class="tab" data-group="primary" data-tab="notes">
+      {{editor system.notes target="system.notes" button=true owner=owner editable=editable}}
+    </div>
+  </section>
+</form>

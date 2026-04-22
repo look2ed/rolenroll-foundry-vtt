@@ -1,0 +1,92 @@
+.rolenroll.sheet.actor {
+  color: #171717;
+}
+
+.rolenroll .window-content {
+  background: #fffdf7;
+}
+
+.rolenroll .sheet-header {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.rolenroll .profile-img {
+  border: 1px solid #d6d1c5;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.rolenroll h1 input {
+  height: 42px;
+  font-size: 1.45rem;
+  font-weight: 800;
+}
+
+.rolenroll .resource-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.rolenroll label {
+  display: grid;
+  gap: 4px;
+  font-weight: 700;
+}
+
+.rolenroll .resource-inputs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 6px;
+  align-items: center;
+}
+
+.rolenroll .sheet-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0;
+  border-top: 1px solid #d6d1c5;
+  border-bottom: 1px solid #d6d1c5;
+  padding: 8px 0;
+}
+
+.rolenroll .sheet-tabs .item {
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: #173a3f;
+  font-weight: 800;
+}
+
+.rolenroll .sheet-tabs .item.active {
+  background: #dcebea;
+}
+
+.rolenroll .attribute-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.rolenroll .attribute-row {
+  grid-template-columns: minmax(120px, 1fr) 80px auto;
+  align-items: center;
+}
+
+.rolenroll textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.rolenroll button {
+  border: 1px solid #a9a291;
+  border-radius: 6px;
+  background: #ffffff;
+  font-weight: 800;
+}
+
+.rolenroll button:hover {
+  background: #dcebea;
+  border-color: #23545a;
+}

@@ -1,0 +1,51 @@
+{
+  "id": "rolenroll",
+  "title": "Role & Roll",
+  "description": "Unofficial Foundry VTT system for Role & Roll.",
+  "version": "0.1.0",
+  "compatibility": {
+    "minimum": 12,
+    "verified": 14
+  },
+  "authors": [
+    {
+      "name": "look2ed",
+      "url": "https://github.com/look2ed"
+    }
+  ],
+  "esmodules": [
+    "scripts/rolenroll.mjs"
+  ],
+  "styles": [
+    "styles/rolenroll.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "documentTypes": {
+    "Actor": {
+      "character": {}
+    },
+    "Item": {
+      "equipment": {},
+      "status": {},
+      "skill": {}
+    }
+  },
+  "socket": false,
+  "initiative": "1d20",
+  "grid": {
+    "distance": 5,
+    "units": "ft"
+  },
+  "primaryTokenAttribute": "resources.health",
+  "secondaryTokenAttribute": "resources.willpower",
+  "url": "https://github.com/look2ed/rolenroll-foundry-vtt",
+  "manifest": "https://raw.githubusercontent.com/look2ed/rolenroll-foundry-vtt/main/system.json",
+  "download": "https://github.com/look2ed/rolenroll-foundry-vtt/archive/refs/heads/main.zip",
+  "license": "LICENSE.txt"
+}
