@@ -3,6 +3,7 @@ const fields = foundry.data.fields;
 const ATTRIBUTE_KEYS = [
   "strength",
   "dexterity",
+  "toughness",
   "intellect",
   "aptitude",
   "sanity",
@@ -10,6 +11,70 @@ const ATTRIBUTE_KEYS = [
   "rhetoric",
   "ego"
 ];
+
+const ATTRIBUTE_CODES = {
+  str: "strength",
+  dex: "dexterity",
+  tou: "toughness",
+  int: "intellect",
+  apt: "aptitude",
+  san: "sanity",
+  cha: "charm",
+  rhe: "rhetoric",
+  ego: "ego"
+};
+
+const GENERAL_ABILITY_GROUPS = [
+  {
+    key: "academic",
+    skills: [
+      { key: "general-education", attr: "int" },
+      { key: "search", attr: "apt" },
+      { key: "history", attr: "int" },
+      { key: "art", attr: "dex", altAttr: "int" },
+      { key: "medicine", attr: "int" },
+      { key: "herb", attr: "int" },
+      { key: "first-aid", attr: "apt" },
+      { key: "law", attr: "int" },
+      { key: "electronic", attr: "int" },
+      { key: "mechanical", attr: "int" },
+      { key: "craft", attr: "dex" }
+    ]
+  },
+  {
+    key: "intuition-trained",
+    skills: [
+      { key: "occult", attr: "san" },
+      { key: "perception", attr: "dex" },
+      { key: "hide-seek", attr: "dex" },
+      { key: "persuade", attr: "rhe" },
+      { key: "consider", attr: "ego" },
+      { key: "empathy", attr: "apt" },
+      { key: "bet", attr: "rhe" },
+      { key: "sense-of-lie", attr: "apt" },
+      { key: "intimidate", attr: "cha" },
+      { key: "survival", attr: "apt" }
+    ]
+  },
+  {
+    key: "physical",
+    skills: [
+      { key: "climb", attr: "str" },
+      { key: "stealth", attr: "dex" },
+      { key: "brawl", attr: "str", altAttr: "dex" },
+      { key: "weapons", attr: "str" },
+      { key: "sword-play", attr: "dex" },
+      { key: "throwing", attr: "str" },
+      { key: "shooting-weapon", attr: "dex" },
+      { key: "reflex", attr: "dex" },
+      { key: "larceny", attr: "dex" },
+      { key: "athlete", attr: "str" }
+    ]
+  }
+];
+
+const GENERAL_SKILLS = GENERAL_ABILITY_GROUPS.flatMap((group) => group.skills);
+const EXTRA_SKILL_SLOTS = ["one", "two", "three", "four", "five", "six"];
 
 function clamp(value, min, max) {
   const number = Number(value ?? 0);
@@ -175,12 +240,35 @@ function buildRollMessage({ label, totalDice, specialDice, success, penalty, res
   `;
 }
 
+function buildDots(value, max = 6) {
+  return Array.from({ length: max }, (_, index) => ({
+    value: index + 1,
+    active: index < value
+  }));
+}
+
+function getAttributeValue(actor, codeOrKey) {
+  const key = ATTRIBUTE_CODES[codeOrKey] ?? codeOrKey;
+  return Number(actor.system.attributes?.[key] ?? 0) || 0;
+}
+
+function getChosenAttribute(actor, skill) {
+  const primaryKey = ATTRIBUTE_CODES[skill.attr] ?? skill.attr;
+  const altKey = ATTRIBUTE_CODES[skill.altAttr] ?? skill.altAttr;
+  if (!altKey) return primaryKey;
+
+  const primary = getAttributeValue(actor, primaryKey);
+  const alt = getAttributeValue(actor, altKey);
+  return alt > primary ? altKey : primaryKey;
+}
+
 class RolenrollCharacterData extends foundry.abstract.TypeDataModel {
   static defineSchema() {
     return {
       attributes: new fields.SchemaField({
         strength: new fields.NumberField({ required: true, integer: true, initial: 1, min: 1, max: 6 }),
         dexterity: new fields.NumberField({ required: true, integer: true, initial: 1, min: 1, max: 6 }),
+        toughness: new fields.NumberField({ required: true, integer: true, initial: 1, min: 1, max: 6 }),
         intellect: new fields.NumberField({ required: true, integer: true, initial: 1, min: 1, max: 6 }),
         aptitude: new fields.NumberField({ required: true, integer: true, initial: 1, min: 1, max: 6 }),
         sanity: new fields.NumberField({ required: true, integer: true, initial: 1, min: 1, max: 6 }),
@@ -193,6 +281,7 @@ class RolenrollCharacterData extends foundry.abstract.TypeDataModel {
       attributeBonuses: new fields.SchemaField({
         strength: new fields.BooleanField({ required: true, initial: false }),
         dexterity: new fields.BooleanField({ required: true, initial: false }),
+        toughness: new fields.BooleanField({ required: true, initial: false }),
         intellect: new fields.BooleanField({ required: true, initial: false }),
         aptitude: new fields.BooleanField({ required: true, initial: false }),
         sanity: new fields.BooleanField({ required: true, initial: false }),
@@ -200,6 +289,31 @@ class RolenrollCharacterData extends foundry.abstract.TypeDataModel {
         rhetoric: new fields.BooleanField({ required: true, initial: false }),
         ego: new fields.BooleanField({ required: true, initial: false })
       }),
+      skills: new fields.SchemaField(Object.fromEntries(
+        GENERAL_SKILLS.map((skill) => [
+          skill.key,
+          new fields.NumberField({ required: true, integer: true, initial: 0, min: 0, max: 6 })
+        ])
+      )),
+      skillBonuses: new fields.SchemaField(Object.fromEntries(
+        GENERAL_SKILLS.map((skill) => [
+          skill.key,
+          new fields.BooleanField({ required: true, initial: false })
+        ])
+      )),
+      extraSkills: new fields.SchemaField(Object.fromEntries(
+        EXTRA_SKILL_SLOTS.map((slot) => [
+          slot,
+          new fields.SchemaField({
+            name: new fields.StringField({ required: true, initial: "" }),
+            points: new fields.NumberField({ required: true, integer: true, initial: 0, min: 0, max: 6 }),
+            attribute: new fields.StringField({ required: true, initial: "strength" }),
+            bonus: new fields.BooleanField({ required: true, initial: false }),
+            profession: new fields.BooleanField({ required: true, initial: false }),
+            details: new fields.StringField({ required: true, initial: "" })
+          })
+        ])
+      )),
       resources: new fields.SchemaField({
         health: new fields.SchemaField({
           value: new fields.NumberField({ required: true, integer: true, initial: 10, min: 0 }),
@@ -254,9 +368,43 @@ class RolenrollActorSheet extends ActorSheet {
         code: game.i18n.localize(`ROLENROLL.AttributeCode.${key}`),
         value,
         bonus: Boolean(this.actor.system.attributeBonuses?.[key]),
-        dots: Array.from({ length: 6 }, (_, index) => ({
-          value: index + 1,
-          active: index < value
+        dots: buildDots(value)
+      };
+    });
+    context.generalAbilityGroups = GENERAL_ABILITY_GROUPS.map((group) => ({
+      key: group.key,
+      label: game.i18n.localize(`ROLENROLL.AbilityGroup.${group.key}`),
+      skills: group.skills.map((skill) => {
+        const value = Number(this.actor.system.skills?.[skill.key] ?? 0);
+        const attrKeys = [skill.attr, skill.altAttr].filter(Boolean);
+        return {
+          ...skill,
+          label: game.i18n.localize(`ROLENROLL.Skill.${skill.key}`),
+          tag: attrKeys.map((key) => game.i18n.localize(`ROLENROLL.AttributeCode.${ATTRIBUTE_CODES[key] ?? key}`)).join(" / "),
+          value,
+          bonus: Boolean(this.actor.system.skillBonuses?.[skill.key]),
+          dots: buildDots(value)
+        };
+      })
+    }));
+    context.attributeOptions = ATTRIBUTE_KEYS.map((key) => ({
+      key,
+      label: `${game.i18n.localize(`ROLENROLL.Attribute.${key}`)} (${game.i18n.localize(`ROLENROLL.AttributeCode.${key}`)})`
+    }));
+    context.extraSkillSlots = EXTRA_SKILL_SLOTS.map((slot) => {
+      const extraSkill = this.actor.system.extraSkills?.[slot] ?? {};
+      const selectedAttribute = extraSkill.attribute || "strength";
+      return {
+        slot,
+        name: extraSkill.name ?? "",
+        points: Number(extraSkill.points ?? 0) || 0,
+        bonus: Boolean(extraSkill.bonus),
+        profession: Boolean(extraSkill.profession),
+        details: extraSkill.details ?? "",
+        dots: buildDots(Number(extraSkill.points ?? 0) || 0),
+        attributeOptions: context.attributeOptions.map((option) => ({
+          ...option,
+          selected: option.key === selectedAttribute
         }))
       };
     });
@@ -268,6 +416,10 @@ class RolenrollActorSheet extends ActorSheet {
 
     html.find("[data-roll-attribute]").on("click", this.#onAttributeRoll.bind(this));
     html.find("[data-attribute-dot]").on("click", this.#onAttributeDot.bind(this));
+    html.find("[data-skill-dot]").on("click", this.#onSkillDot.bind(this));
+    html.find("[data-roll-skill]").on("click", this.#onSkillRoll.bind(this));
+    html.find("[data-extra-skill-dot]").on("click", this.#onExtraSkillDot.bind(this));
+    html.find("[data-roll-extra-skill]").on("click", this.#onExtraSkillRoll.bind(this));
   }
 
   async #onAttributeDot(event) {
@@ -278,6 +430,30 @@ class RolenrollActorSheet extends ActorSheet {
     if (!ATTRIBUTE_KEYS.includes(attribute) || !Number.isFinite(value)) return;
 
     await this.actor.update({ [`system.attributes.${attribute}`]: value });
+  }
+
+  async #onSkillDot(event) {
+    event.preventDefault();
+
+    const skill = event.currentTarget.dataset.skillDot;
+    const clickedValue = Number(event.currentTarget.dataset.value ?? 0);
+    if (!GENERAL_SKILLS.some((entry) => entry.key === skill) || !Number.isFinite(clickedValue)) return;
+
+    const currentValue = Number(this.actor.system.skills?.[skill] ?? 0);
+    const value = currentValue === clickedValue ? clickedValue - 1 : clickedValue;
+    await this.actor.update({ [`system.skills.${skill}`]: Math.max(0, value) });
+  }
+
+  async #onExtraSkillDot(event) {
+    event.preventDefault();
+
+    const slot = event.currentTarget.dataset.extraSkillDot;
+    const clickedValue = Number(event.currentTarget.dataset.value ?? 0);
+    if (!EXTRA_SKILL_SLOTS.includes(slot) || !Number.isFinite(clickedValue)) return;
+
+    const currentValue = Number(this.actor.system.extraSkills?.[slot]?.points ?? 0);
+    const value = currentValue === clickedValue ? clickedValue - 1 : clickedValue;
+    await this.actor.update({ [`system.extraSkills.${slot}.points`]: Math.max(0, value) });
   }
 
   async #onAttributeRoll(event) {
@@ -300,6 +476,68 @@ class RolenrollActorSheet extends ActorSheet {
       totalDice,
       specialDice: this.actor.system.roll?.specialDice ?? "",
       success: Math.max(0, globalSuccess + attributeSuccess),
+      penalty: Math.max(0, Number(this.actor.system.roll?.penalty ?? 0) || 0)
+    });
+  }
+
+  async #onSkillRoll(event) {
+    event.preventDefault();
+
+    const skillKey = event.currentTarget.dataset.rollSkill;
+    const skill = GENERAL_SKILLS.find((entry) => entry.key === skillKey);
+    if (!skill) return;
+
+    const skillDice = Number(this.actor.system.skills?.[skillKey] ?? 0) || 0;
+    const chosenAttribute = getChosenAttribute(this.actor, skill);
+    const attributeDice = getAttributeValue(this.actor, chosenAttribute);
+    const totalDice = skillDice + attributeDice;
+
+    if (totalDice <= 0) {
+      ui.notifications.warn(game.i18n.localize("ROLENROLL.Roll.NoDice"));
+      return;
+    }
+
+    const globalSuccess = Number(this.actor.system.roll?.success ?? 0) || 0;
+    const skillSuccess = this.actor.system.skillBonuses?.[skillKey] ? 1 : 0;
+    const attributeSuccess = this.actor.system.attributeBonuses?.[chosenAttribute] ? 1 : 0;
+
+    this.#openRollDialog({
+      label: game.i18n.localize(`ROLENROLL.Skill.${skillKey}`),
+      totalDice,
+      specialDice: this.actor.system.roll?.specialDice ?? "",
+      success: Math.max(0, globalSuccess + skillSuccess + attributeSuccess),
+      penalty: Math.max(0, Number(this.actor.system.roll?.penalty ?? 0) || 0)
+    });
+  }
+
+  async #onExtraSkillRoll(event) {
+    event.preventDefault();
+
+    const slot = event.currentTarget.dataset.rollExtraSkill;
+    const extraSkill = this.actor.system.extraSkills?.[slot];
+    if (!EXTRA_SKILL_SLOTS.includes(slot) || !extraSkill) return;
+
+    const skillDice = Number(extraSkill.points ?? 0) || 0;
+    const attribute = ATTRIBUTE_KEYS.includes(extraSkill.attribute) ? extraSkill.attribute : "strength";
+    const attributeDice = getAttributeValue(this.actor, attribute);
+    const totalDice = skillDice + attributeDice;
+
+    if (totalDice <= 0) {
+      ui.notifications.warn(game.i18n.localize("ROLENROLL.Roll.NoDice"));
+      return;
+    }
+
+    const globalSuccess = Number(this.actor.system.roll?.success ?? 0) || 0;
+    const skillSuccess = extraSkill.bonus ? 1 : 0;
+    const professionSuccess = extraSkill.profession ? 1 : 0;
+    const attributeSuccess = this.actor.system.attributeBonuses?.[attribute] ? 1 : 0;
+    const label = extraSkill.name?.trim() || game.i18n.localize("ROLENROLL.ExtraSkill.Untitled");
+
+    this.#openRollDialog({
+      label,
+      totalDice,
+      specialDice: this.actor.system.roll?.specialDice ?? "",
+      success: Math.max(0, globalSuccess + skillSuccess + professionSuccess + attributeSuccess),
       penalty: Math.max(0, Number(this.actor.system.roll?.penalty ?? 0) || 0)
     });
   }

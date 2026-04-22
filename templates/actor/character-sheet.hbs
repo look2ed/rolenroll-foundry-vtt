@@ -32,6 +32,8 @@
 
   <nav class="sheet-tabs tabs" data-group="primary">
     <a class="item" data-tab="attributes">{{localize "ROLENROLL.Tab.Attributes"}}</a>
+    <a class="item" data-tab="general">{{localize "ROLENROLL.Tab.GeneralAbility"}}</a>
+    <a class="item" data-tab="extra">{{localize "ROLENROLL.Tab.ExtraSkill"}}</a>
     <a class="item" data-tab="gear">{{localize "ROLENROLL.Tab.Gear"}}</a>
     <a class="item" data-tab="notes">{{localize "ROLENROLL.Tab.Notes"}}</a>
   </nav>
@@ -78,6 +80,89 @@
             </label>
             <button type="button" data-roll-attribute="{{key}}">{{localize "ROLENROLL.Action.RollD6"}}</button>
           </div>
+        {{/each}}
+      </div>
+    </div>
+
+    <div class="tab" data-group="primary" data-tab="general">
+      <div class="ability-groups">
+        {{#each generalAbilityGroups}}
+          <section class="ability-group">
+            <h2>{{label}}</h2>
+            <div class="skill-grid">
+              {{#each skills}}
+                <div class="skill-row">
+                  <div class="skill-name">
+                    <span>{{label}}</span>
+                    <small>{{tag}}</small>
+                  </div>
+                  <input type="hidden" name="system.skills.{{key}}" value="{{value}}">
+                  <div class="stat-dots" aria-label="{{label}}">
+                    {{#each dots}}
+                      <button
+                        type="button"
+                        class="stat-dot {{#if active}}active{{/if}}"
+                        data-skill-dot="{{../key}}"
+                        data-value="{{value}}"
+                        aria-label="{{../label}} {{value}}"
+                      ></button>
+                    {{/each}}
+                  </div>
+                  <label class="stat-bonus">
+                    <input type="checkbox" name="system.skillBonuses.{{key}}" {{#if bonus}}checked{{/if}}>
+                    <span>{{localize "ROLENROLL.Roll.AttributeSucceed"}}</span>
+                  </label>
+                  <button type="button" data-roll-skill="{{key}}">{{localize "ROLENROLL.Action.RollD6"}}</button>
+                </div>
+              {{/each}}
+            </div>
+          </section>
+        {{/each}}
+      </div>
+    </div>
+
+    <div class="tab" data-group="primary" data-tab="extra">
+      <div class="extra-skill-grid">
+        {{#each extraSkillSlots}}
+          <section class="extra-skill-row">
+            <label class="extra-skill-name">
+              <span>{{localize "ROLENROLL.ExtraSkill.Name"}}</span>
+              <input type="text" name="system.extraSkills.{{slot}}.name" value="{{name}}">
+            </label>
+            <label>
+              <span>{{localize "ROLENROLL.ExtraSkill.Attribute"}}</span>
+              <select name="system.extraSkills.{{slot}}.attribute">
+                {{#each attributeOptions}}
+                  <option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+                {{/each}}
+              </select>
+            </label>
+            <input type="hidden" name="system.extraSkills.{{slot}}.points" value="{{points}}">
+            <div class="stat-dots extra-skill-dots" aria-label="{{name}}">
+              {{#each dots}}
+                <button
+                  type="button"
+                  class="stat-dot {{#if active}}active{{/if}}"
+                  data-extra-skill-dot="{{../slot}}"
+                  data-value="{{value}}"
+                  aria-label="{{../name}} {{value}}"
+                ></button>
+              {{/each}}
+            </div>
+            <label class="stat-bonus">
+              <input type="checkbox" name="system.extraSkills.{{slot}}.bonus" {{#if bonus}}checked{{/if}}>
+              <span>{{localize "ROLENROLL.Roll.AttributeSucceed"}}</span>
+            </label>
+            <label class="stat-bonus">
+              <input type="checkbox" name="system.extraSkills.{{slot}}.profession" {{#if profession}}checked{{/if}}>
+              <span>{{localize "ROLENROLL.ExtraSkill.Profession"}}</span>
+            </label>
+            <label class="extra-skill-details">
+              <span>{{localize "ROLENROLL.ExtraSkill.Details"}}</span>
+              <textarea name="system.extraSkills.{{slot}}.details">{{details}}</textarea>
+            </label>
+            <button type="button" data-roll-extra-skill="{{slot}}">{{localize "ROLENROLL.Action.RollD6"}}</button>
+          </section>
         {{/each}}
       </div>
     </div>
