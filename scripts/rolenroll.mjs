@@ -131,6 +131,163 @@ const STATUS_CATEGORIES = ["buff", "injuries", "flaw", "psychiatric"];
 const STATUS_DURATION_KINDS = ["permanent", "temporary"];
 const STATUS_DURATION_MODES = ["turns", "skill-check"];
 
+const FALLBACK_LOCALIZATION = {
+  "Cancel": "Cancel",
+  "ROLENROLL.Action.Roll": "Roll",
+  "ROLENROLL.Action.RollD6": "Roll Pool",
+  "ROLENROLL.Action.Remove": "Remove",
+  "ROLENROLL.Actor.Name": "Character Name",
+  "ROLENROLL.Attribute.aptitude": "Aptitude",
+  "ROLENROLL.Attribute.charm": "Charm",
+  "ROLENROLL.Attribute.dexterity": "Dexterity",
+  "ROLENROLL.Attribute.ego": "Ego",
+  "ROLENROLL.Attribute.intellect": "Intellect",
+  "ROLENROLL.Attribute.rhetoric": "Rhetoric",
+  "ROLENROLL.Attribute.sanity": "Sanity",
+  "ROLENROLL.Attribute.strength": "Strength",
+  "ROLENROLL.Attribute.toughness": "Toughness",
+  "ROLENROLL.AttributeCode.aptitude": "APT",
+  "ROLENROLL.AttributeCode.charm": "CHA",
+  "ROLENROLL.AttributeCode.dexterity": "DEX",
+  "ROLENROLL.AttributeCode.ego": "EGO",
+  "ROLENROLL.AttributeCode.intellect": "INT",
+  "ROLENROLL.AttributeCode.rhetoric": "RHE",
+  "ROLENROLL.AttributeCode.sanity": "SAN",
+  "ROLENROLL.AttributeCode.strength": "STR",
+  "ROLENROLL.AttributeCode.toughness": "TOU",
+  "ROLENROLL.AbilityGroup.academic": "Academic",
+  "ROLENROLL.AbilityGroup.intuition-trained": "Intuition & Trained",
+  "ROLENROLL.AbilityGroup.physical": "Physical Skills",
+  "ROLENROLL.ExtraSkill.Add": "+ Add Extra Skill",
+  "ROLENROLL.ExtraSkill.Details": "Details",
+  "ROLENROLL.ExtraSkill.Empty": "No extra skills yet.",
+  "ROLENROLL.ExtraSkill.LinkedStats": "Linked Stats",
+  "ROLENROLL.ExtraSkill.Name": "Extra Skill",
+  "ROLENROLL.ExtraSkill.NoSlots": "No empty extra skill slots are available.",
+  "ROLENROLL.ExtraSkill.Untitled": "Extra Skill Roll",
+  "ROLENROLL.Inventory.AddGear": "+ Add Gear",
+  "ROLENROLL.Inventory.AddItem": "+ Add Item",
+  "ROLENROLL.Inventory.Details": "Details",
+  "ROLENROLL.Inventory.Equipment": "Equipment",
+  "ROLENROLL.Inventory.GearName": "Gear",
+  "ROLENROLL.Inventory.ItemName": "Item",
+  "ROLENROLL.Inventory.Items": "Inventory",
+  "ROLENROLL.Inventory.Location": "Location",
+  "ROLENROLL.Inventory.Location.left": "Left",
+  "ROLENROLL.Inventory.Location.right": "Right",
+  "ROLENROLL.Inventory.Location.wearing": "Wearing",
+  "ROLENROLL.Inventory.NoEquipment": "No equipment yet.",
+  "ROLENROLL.Inventory.NoEquipmentSlots": "No empty equipment slots are available.",
+  "ROLENROLL.Inventory.NoItems": "No inventory items yet.",
+  "ROLENROLL.Inventory.NoItemSlots": "No empty inventory item slots are available.",
+  "ROLENROLL.Inventory.Quantity": "Qty",
+  "ROLENROLL.Inventory.UntitledItem": "Inventory Item",
+  "ROLENROLL.Inventory.Use": "Use",
+  "ROLENROLL.Inventory.UsedItem": "Used {item}",
+  "ROLENROLL.Profile.Age": "Age",
+  "ROLENROLL.Profile.Background": "Character Background",
+  "ROLENROLL.Profile.Exp": "EXP",
+  "ROLENROLL.Profile.Gender": "Gender",
+  "ROLENROLL.Profile.Level": "Lv.",
+  "ROLENROLL.Profile.Race": "Race",
+  "ROLENROLL.Profile.WillSource": "Source of Will Power",
+  "ROLENROLL.Resource.Defense": "Defense",
+  "ROLENROLL.Resource.Health": "Health",
+  "ROLENROLL.Resource.Mental": "Mental",
+  "ROLENROLL.Resource.Willpower": "Willpower",
+  "ROLENROLL.Roll.Attribute": "{attribute} Roll",
+  "ROLENROLL.Roll.AttributeSucceed": "+1 Succeed",
+  "ROLENROLL.Roll.AddSpecialDie": "+ Add Special Die",
+  "ROLENROLL.Roll.Base": "Base",
+  "ROLENROLL.Roll.BoardDice": "Role & Roll Dice",
+  "ROLENROLL.Roll.InvalidSpecialDice": "Invalid special dice token: \"{token}\". Use aX or nY, for example a1 or n2.",
+  "ROLENROLL.Roll.InvalidSpecialDiceJson": "Invalid special dice data. Please remove and add the special dice again.",
+  "ROLENROLL.Roll.Label": "Label",
+  "ROLENROLL.Roll.Manual": "Manual Roll",
+  "ROLENROLL.Roll.NoDice": "This roll needs at least 1 die.",
+  "ROLENROLL.Roll.NoSpecialDice": "None",
+  "ROLENROLL.Roll.Penalty": "Penalty",
+  "ROLENROLL.Roll.RerollButton": "Reroll",
+  "ROLENROLL.Roll.RerollPrompt": "Reroll {count} dice.",
+  "ROLENROLL.Roll.RerollRound": "reroll {round}",
+  "ROLENROLL.Roll.RerollTitle": "Reroll",
+  "ROLENROLL.Roll.Rerolls": "R&R",
+  "ROLENROLL.Roll.SpecialDice": "Special dice",
+  "ROLENROLL.Roll.SpecialDie": "Special die",
+  "ROLENROLL.Roll.SpecialDiceHint": "Use old roller syntax: a1-a4 for plus dice, n1-n4 for negative dice.",
+  "ROLENROLL.Roll.Succeed": "Succeed",
+  "ROLENROLL.Roll.SucceedPenalty": "Succeed / Penalty",
+  "ROLENROLL.Roll.Tokens": "Tokens",
+  "ROLENROLL.Roll.TooManyDice": "RolEnRoll: Too many dice requested (max 50).",
+  "ROLENROLL.Roll.TooManySpecialDice": "Number of special dice cannot be more than total dice.",
+  "ROLENROLL.Roll.Total": "Total",
+  "ROLENROLL.Roll.TotalDice": "Total dice",
+  "ROLENROLL.Skill.art": "Art",
+  "ROLENROLL.Skill.athlete": "Athlete",
+  "ROLENROLL.Skill.bet": "Bet",
+  "ROLENROLL.Skill.brawl": "Brawl",
+  "ROLENROLL.Skill.climb": "Climb",
+  "ROLENROLL.Skill.consider": "Consider",
+  "ROLENROLL.Skill.craft": "Craft",
+  "ROLENROLL.Skill.electronic": "Electronic",
+  "ROLENROLL.Skill.empathy": "Empathy",
+  "ROLENROLL.Skill.first-aid": "First Aid",
+  "ROLENROLL.Skill.general-education": "General Education",
+  "ROLENROLL.Skill.herb": "Herb",
+  "ROLENROLL.Skill.hide-seek": "Hide & Seek",
+  "ROLENROLL.Skill.history": "History",
+  "ROLENROLL.Skill.intimidate": "Intimidate",
+  "ROLENROLL.Skill.larceny": "Larceny",
+  "ROLENROLL.Skill.law": "Law",
+  "ROLENROLL.Skill.mechanical": "Mechanical",
+  "ROLENROLL.Skill.medicine": "Medicine",
+  "ROLENROLL.Skill.occult": "Occult",
+  "ROLENROLL.Skill.perception": "Perception",
+  "ROLENROLL.Skill.persuade": "Persuade",
+  "ROLENROLL.Skill.reflex": "Reflex",
+  "ROLENROLL.Skill.search": "Search",
+  "ROLENROLL.Skill.sense-of-lie": "Sense of Lie",
+  "ROLENROLL.Skill.shooting-weapon": "Shooting Weapon",
+  "ROLENROLL.Skill.stealth": "Stealth",
+  "ROLENROLL.Skill.survival": "Survival",
+  "ROLENROLL.Skill.sword-play": "Sword Play",
+  "ROLENROLL.Skill.throwing": "Throwing",
+  "ROLENROLL.Skill.weapons": "Weapons",
+  "ROLENROLL.Status.Add": "+ Add Status",
+  "ROLENROLL.Status.Buffs": "Buffs",
+  "ROLENROLL.Status.Category": "Category",
+  "ROLENROLL.Status.Category.buff": "Buff",
+  "ROLENROLL.Status.Category.flaw": "Flaw",
+  "ROLENROLL.Status.Category.injuries": "Injuries & Disorders",
+  "ROLENROLL.Status.Category.psychiatric": "Psychiatric Disorder",
+  "ROLENROLL.Status.Debuffs": "Debuffs",
+  "ROLENROLL.Status.Details": "Details",
+  "ROLENROLL.Status.Duration": "Duration",
+  "ROLENROLL.Status.Duration.permanent": "Permanent",
+  "ROLENROLL.Status.Duration.skill-check": "Pass skill check",
+  "ROLENROLL.Status.Duration.temporary": "Temporary",
+  "ROLENROLL.Status.Duration.turns": "Turns",
+  "ROLENROLL.Status.Duration.turnsText": "{turns} turn(s)",
+  "ROLENROLL.Status.Name": "Name",
+  "ROLENROLL.Status.NoBuffs": "No buffs yet.",
+  "ROLENROLL.Status.NoDebuffs": "No debuffs yet.",
+  "ROLENROLL.Status.NoSlots": "No empty status slots are available.",
+  "ROLENROLL.Status.Turns": "Turns",
+  "ROLENROLL.Status.Until": "Until",
+  "ROLENROLL.Tab.Attributes": "Attributes",
+  "ROLENROLL.Tab.ExtraSkill": "Extra Skill",
+  "ROLENROLL.Tab.GeneralAbility": "General Ability",
+  "ROLENROLL.Tab.Inventory": "Inventory",
+  "ROLENROLL.Tab.More": "More",
+  "ROLENROLL.Tab.Status": "Status"
+};
+
+function localize(key, data = {}) {
+  const translated = game.i18n?.localize?.(key);
+  const template = translated && translated !== key ? translated : FALLBACK_LOCALIZATION[key] ?? key;
+  return String(template).replace(/\{([^}]+)\}/g, (match, name) => data[name] ?? match);
+}
+
 function clamp(value, min, max) {
   const number = Number(value ?? 0);
   const safeNumber = Number.isNaN(number) ? 0 : number;
@@ -212,7 +369,7 @@ function parseSpecialDice(specialDice) {
         return { kind: "normal" };
       });
     } catch (error) {
-      throw new Error(game.i18n.localize("ROLENROLL.Roll.InvalidSpecialDiceJson"));
+      throw new Error(localize("ROLENROLL.Roll.InvalidSpecialDiceJson"));
     }
   }
 
@@ -234,7 +391,7 @@ function parseSpecialDice(specialDice) {
       continue;
     }
 
-    throw new Error(game.i18n.format("ROLENROLL.Roll.InvalidSpecialDice", { token }));
+    throw new Error(localize("ROLENROLL.Roll.InvalidSpecialDice", { token }));
   }
 
   return configs;
@@ -248,7 +405,7 @@ async function showDiceOnBoard(roll, speaker) {
 
   await roll.toMessage({
     speaker,
-    flavor: game.i18n.localize("ROLENROLL.Roll.BoardDice"),
+    flavor: localize("ROLENROLL.Roll.BoardDice"),
     flags: {
       core: {
         canPopout: false
@@ -264,11 +421,11 @@ function getRollValues(roll) {
 function confirmReroll(count) {
   return new Promise((resolve) => {
     new Dialog({
-      title: game.i18n.localize("ROLENROLL.Roll.RerollTitle"),
-      content: `<p>${game.i18n.format("ROLENROLL.Roll.RerollPrompt", { count })}</p>`,
+      title: localize("ROLENROLL.Roll.RerollTitle"),
+      content: `<p>${localize("ROLENROLL.Roll.RerollPrompt", { count })}</p>`,
       buttons: {
         reroll: {
-          label: game.i18n.localize("ROLENROLL.Roll.RerollButton"),
+          label: localize("ROLENROLL.Roll.RerollButton"),
           callback: () => resolve(true)
         }
       },
@@ -342,26 +499,26 @@ function escapeHtml(value) {
 
 function buildRollMessage({ label, totalDice, specialDice, success, penalty, result }) {
   const diceRows = result.rounds.map((round, index) => {
-    const labelHtml = index === 0 ? "" : `<em>${game.i18n.format("ROLENROLL.Roll.RerollRound", { round: index })}</em>`;
+    const labelHtml = index === 0 ? "" : `<em>${localize("ROLENROLL.Roll.RerollRound", { round: index })}</em>`;
     const diceHtml = round.map((roll) => faceToDieHtml(roll.face)).join("");
     return `<div class="role-roll-dice-row">${labelHtml}${diceHtml}</div>`;
   }).join("");
   const diceTotal = result.scoring.total;
   const finalTotal = Math.max(0, diceTotal + success - penalty);
-  const specialText = specialDice ? escapeHtml(specialDice) : game.i18n.localize("ROLENROLL.Roll.NoSpecialDice");
+  const specialText = specialDice ? escapeHtml(specialDice) : localize("ROLENROLL.Roll.NoSpecialDice");
 
   return `
     <div class="role-roll-chat">
       <div class="role-roll-header"><strong>${escapeHtml(label)}</strong></div>
       ${diceRows}
       <dl class="role-roll-summary">
-        <div><dt>${game.i18n.localize("ROLENROLL.Roll.TotalDice")}</dt><dd>${totalDice}</dd></div>
-        <div><dt>${game.i18n.localize("ROLENROLL.Roll.SpecialDice")}</dt><dd>${specialText}</dd></div>
-        <div><dt>${game.i18n.localize("ROLENROLL.Roll.Base")}</dt><dd>${result.baseScore}</dd></div>
-        <div><dt>${game.i18n.localize("ROLENROLL.Roll.Rerolls")}</dt><dd>${result.rerollCount} (+${result.rerollPoints})</dd></div>
-        <div><dt>${game.i18n.localize("ROLENROLL.Roll.Tokens")}</dt><dd>+${result.plusTokens} / -${result.minusTokens}</dd></div>
-        <div><dt>${game.i18n.localize("ROLENROLL.Roll.SucceedPenalty")}</dt><dd>+${success} / -${penalty}</dd></div>
-        <div class="role-roll-total"><dt>${game.i18n.localize("ROLENROLL.Roll.Total")}</dt><dd>${finalTotal}</dd></div>
+        <div><dt>${localize("ROLENROLL.Roll.TotalDice")}</dt><dd>${totalDice}</dd></div>
+        <div><dt>${localize("ROLENROLL.Roll.SpecialDice")}</dt><dd>${specialText}</dd></div>
+        <div><dt>${localize("ROLENROLL.Roll.Base")}</dt><dd>${result.baseScore}</dd></div>
+        <div><dt>${localize("ROLENROLL.Roll.Rerolls")}</dt><dd>${result.rerollCount} (+${result.rerollPoints})</dd></div>
+        <div><dt>${localize("ROLENROLL.Roll.Tokens")}</dt><dd>+${result.plusTokens} / -${result.minusTokens}</dd></div>
+        <div><dt>${localize("ROLENROLL.Roll.SucceedPenalty")}</dt><dd>+${success} / -${penalty}</dd></div>
+        <div class="role-roll-total"><dt>${localize("ROLENROLL.Roll.Total")}</dt><dd>${finalTotal}</dd></div>
       </dl>
     </div>
   `;
@@ -422,7 +579,7 @@ function buildSpecialDicePreviewHtml(specialDice) {
         </div>
       </div>
     `).join("")
-    : `<p class="special-dice-empty">${game.i18n.localize("ROLENROLL.Roll.NoSpecialDice")}</p>`;
+    : `<p class="special-dice-empty">${localize("ROLENROLL.Roll.NoSpecialDice")}</p>`;
 }
 
 function getAttributeValue(actor, codeOrKey) {
@@ -486,12 +643,12 @@ function getStatusDurationMode(value) {
 
 function getStatusDurationText(entry) {
   const durationKind = getStatusDurationKind(entry.durationKind);
-  if (durationKind !== "temporary") return game.i18n.localize("ROLENROLL.Status.Duration.permanent");
+  if (durationKind !== "temporary") return localize("ROLENROLL.Status.Duration.permanent");
 
   const durationMode = getStatusDurationMode(entry.durationMode);
-  if (durationMode === "skill-check") return game.i18n.localize("ROLENROLL.Status.Duration.skill-check");
+  if (durationMode === "skill-check") return localize("ROLENROLL.Status.Duration.skill-check");
 
-  return game.i18n.format("ROLENROLL.Status.Duration.turnsText", {
+  return localize("ROLENROLL.Status.Duration.turnsText", {
     turns: Math.max(0, Number(entry.durationTurns ?? 0) || 0)
   });
 }
@@ -655,7 +812,7 @@ class RolenrollItem extends Item {}
 
 async function performPoolRoll({ label, totalDice, specialDice = "", success = 0, penalty = 0, actor = null }) {
   if (!Number.isFinite(totalDice) || totalDice <= 0) {
-    ui.notifications.warn(game.i18n.localize("ROLENROLL.Roll.NoDice"));
+    ui.notifications.warn(localize("ROLENROLL.Roll.NoDice"));
     return;
   }
 
@@ -668,7 +825,7 @@ async function performPoolRoll({ label, totalDice, specialDice = "", success = 0
   }
 
   if (specialConfigs.length > totalDice) {
-    ui.notifications.warn(game.i18n.localize("ROLENROLL.Roll.TooManySpecialDice"));
+    ui.notifications.warn(localize("ROLENROLL.Roll.TooManySpecialDice"));
     return;
   }
 
@@ -676,7 +833,7 @@ async function performPoolRoll({ label, totalDice, specialDice = "", success = 0
   for (let i = specialConfigs.length; i < totalDice; i++) dice.push({ kind: "normal" });
 
   if (dice.length > 50) {
-    ui.notifications.warn(game.i18n.localize("ROLENROLL.Roll.TooManyDice"));
+    ui.notifications.warn(localize("ROLENROLL.Roll.TooManyDice"));
     return;
   }
 
@@ -693,40 +850,40 @@ function openManualRoll() {
   const content = `
     <form class="rolenroll-roll-dialog">
       <div class="form-group">
-        <label>${game.i18n.localize("ROLENROLL.Roll.Label")}</label>
-        <input type="text" name="label" value="${game.i18n.localize("ROLENROLL.Roll.Manual")}" autofocus>
+        <label>${localize("ROLENROLL.Roll.Label")}</label>
+        <input type="text" name="label" value="${localize("ROLENROLL.Roll.Manual")}" autofocus>
       </div>
       <div class="form-group">
-        <label>${game.i18n.localize("ROLENROLL.Roll.TotalDice")}</label>
+        <label>${localize("ROLENROLL.Roll.TotalDice")}</label>
         <input type="number" name="totalDice" min="1" max="50" value="5">
       </div>
       <div class="form-group">
-        <label>${game.i18n.localize("ROLENROLL.Roll.SpecialDice")}</label>
+        <label>${localize("ROLENROLL.Roll.SpecialDice")}</label>
         <input type="text" name="specialDice" value="" placeholder="a1, n2">
-        <p class="notes">${game.i18n.localize("ROLENROLL.Roll.SpecialDiceHint")}</p>
+        <p class="notes">${localize("ROLENROLL.Roll.SpecialDiceHint")}</p>
       </div>
       <div class="form-group">
-        <label>${game.i18n.localize("ROLENROLL.Roll.Succeed")}</label>
+        <label>${localize("ROLENROLL.Roll.Succeed")}</label>
         <input type="number" name="success" min="0" value="0">
       </div>
       <div class="form-group">
-        <label>${game.i18n.localize("ROLENROLL.Roll.Penalty")}</label>
+        <label>${localize("ROLENROLL.Roll.Penalty")}</label>
         <input type="number" name="penalty" min="0" value="0">
       </div>
     </form>
   `;
 
   new Dialog({
-    title: game.i18n.localize("ROLENROLL.Roll.Manual"),
+    title: localize("ROLENROLL.Roll.Manual"),
     content,
     buttons: {
       roll: {
-        label: game.i18n.localize("ROLENROLL.Action.Roll"),
+        label: localize("ROLENROLL.Action.Roll"),
         callback: async (html) => {
           const form = html[0]?.querySelector("form");
           const formData = new FormData(form);
           await performPoolRoll({
-            label: String(formData.get("label") || game.i18n.localize("ROLENROLL.Roll.Manual")),
+            label: String(formData.get("label") || localize("ROLENROLL.Roll.Manual")),
             totalDice: parseInt(formData.get("totalDice") ?? "0", 10),
             specialDice: String(formData.get("specialDice") ?? "").trim(),
             success: Math.max(0, Number(formData.get("success") ?? 0) || 0),
@@ -735,7 +892,7 @@ function openManualRoll() {
         }
       },
       cancel: {
-        label: game.i18n.localize("Cancel")
+        label: localize("Cancel")
       }
     },
     default: "roll"
@@ -776,8 +933,8 @@ class RolenrollActorSheet extends ActorSheet {
       const value = Number(this.actor.system.attributes?.[key] ?? 0);
       return {
         key,
-        label: game.i18n.localize(`ROLENROLL.Attribute.${key}`),
-        code: game.i18n.localize(`ROLENROLL.AttributeCode.${key}`),
+        label: localize(`ROLENROLL.Attribute.${key}`),
+        code: localize(`ROLENROLL.AttributeCode.${key}`),
         value,
         bonus: Boolean(this.actor.system.attributeBonuses?.[key]),
         dots: buildDots(value)
@@ -785,14 +942,14 @@ class RolenrollActorSheet extends ActorSheet {
     });
     context.generalAbilityGroups = GENERAL_ABILITY_GROUPS.map((group) => ({
       key: group.key,
-      label: game.i18n.localize(`ROLENROLL.AbilityGroup.${group.key}`),
+      label: localize(`ROLENROLL.AbilityGroup.${group.key}`),
       skills: group.skills.map((skill) => {
         const value = Number(this.actor.system.skills?.[skill.key] ?? 0);
         const attrKeys = [skill.attr, skill.altAttr].filter(Boolean);
         return {
           ...skill,
-          label: game.i18n.localize(`ROLENROLL.Skill.${skill.key}`),
-          tag: attrKeys.map((key) => game.i18n.localize(`ROLENROLL.AttributeCode.${ATTRIBUTE_CODES[key] ?? key}`)).join(" / "),
+          label: localize(`ROLENROLL.Skill.${skill.key}`),
+          tag: attrKeys.map((key) => localize(`ROLENROLL.AttributeCode.${ATTRIBUTE_CODES[key] ?? key}`)).join(" / "),
           value,
           bonus: Boolean(this.actor.system.skillBonuses?.[skill.key]),
           dots: buildDots(value)
@@ -801,11 +958,11 @@ class RolenrollActorSheet extends ActorSheet {
     }));
     context.attributeOptions = ATTRIBUTE_KEYS.map((key) => ({
       key: `attribute:${key}`,
-      label: `${game.i18n.localize(`ROLENROLL.Attribute.${key}`)} (${game.i18n.localize(`ROLENROLL.AttributeCode.${key}`)})`
+      label: `${localize(`ROLENROLL.Attribute.${key}`)} (${localize(`ROLENROLL.AttributeCode.${key}`)})`
     }));
     context.generalAbilityOptions = GENERAL_SKILLS.map((skill) => ({
       key: `skill:${skill.key}`,
-      label: game.i18n.localize(`ROLENROLL.Skill.${skill.key}`)
+      label: localize(`ROLENROLL.Skill.${skill.key}`)
     }));
     const allDependencyOptions = context.attributeOptions.concat(context.generalAbilityOptions);
     context.extraSkillSlots = EXTRA_SKILL_SLOTS.map((slot) => {
@@ -839,7 +996,7 @@ class RolenrollActorSheet extends ActorSheet {
         details: entry.details ?? "",
         locationOptions: EQUIPMENT_LOCATIONS.map((key) => ({
           key,
-          label: game.i18n.localize(`ROLENROLL.Inventory.Location.${key}`),
+          label: localize(`ROLENROLL.Inventory.Location.${key}`),
           selected: key === location
         }))
       };
@@ -866,7 +1023,7 @@ class RolenrollActorSheet extends ActorSheet {
         active: isEntryActive(entry),
         name: entry.name ?? "",
         category,
-        categoryLabel: game.i18n.localize(`ROLENROLL.Status.Category.${category}`),
+        categoryLabel: localize(`ROLENROLL.Status.Category.${category}`),
         durationKind,
         durationMode,
         durationTurns: Math.max(0, Number(entry.durationTurns ?? 1) || 0),
@@ -874,17 +1031,17 @@ class RolenrollActorSheet extends ActorSheet {
         details: entry.details ?? "",
         categoryOptions: STATUS_CATEGORIES.map((key) => ({
           key,
-          label: game.i18n.localize(`ROLENROLL.Status.Category.${key}`),
+          label: localize(`ROLENROLL.Status.Category.${key}`),
           selected: key === category
         })),
         durationKindOptions: STATUS_DURATION_KINDS.map((key) => ({
           key,
-          label: game.i18n.localize(`ROLENROLL.Status.Duration.${key}`),
+          label: localize(`ROLENROLL.Status.Duration.${key}`),
           selected: key === durationKind
         })),
         durationModeOptions: STATUS_DURATION_MODES.map((key) => ({
           key,
-          label: game.i18n.localize(`ROLENROLL.Status.Duration.${key}`),
+          label: localize(`ROLENROLL.Status.Duration.${key}`),
           selected: key === durationMode
         }))
       };
@@ -965,7 +1122,7 @@ class RolenrollActorSheet extends ActorSheet {
     });
 
     if (!slot) {
-      ui.notifications.warn(game.i18n.localize("ROLENROLL.ExtraSkill.NoSlots"));
+      ui.notifications.warn(localize("ROLENROLL.ExtraSkill.NoSlots"));
       return;
     }
 
@@ -1045,7 +1202,7 @@ class RolenrollActorSheet extends ActorSheet {
 
     const slot = EQUIPMENT_ENTRY_SLOTS.find((key) => !isEntryActive(this.actor.system.equipmentEntries?.[key]));
     if (!slot) {
-      ui.notifications.warn(game.i18n.localize("ROLENROLL.Inventory.NoEquipmentSlots"));
+      ui.notifications.warn(localize("ROLENROLL.Inventory.NoEquipmentSlots"));
       return;
     }
 
@@ -1071,7 +1228,7 @@ class RolenrollActorSheet extends ActorSheet {
 
     const slot = INVENTORY_ITEM_SLOTS.find((key) => !isEntryActive(this.actor.system.inventoryItems?.[key]));
     if (!slot) {
-      ui.notifications.warn(game.i18n.localize("ROLENROLL.Inventory.NoItemSlots"));
+      ui.notifications.warn(localize("ROLENROLL.Inventory.NoItemSlots"));
       return;
     }
 
@@ -1099,14 +1256,14 @@ class RolenrollActorSheet extends ActorSheet {
     const item = this.actor.system.inventoryItems?.[slot];
     if (!INVENTORY_ITEM_SLOTS.includes(slot) || !item) return;
 
-    const name = item.name?.trim() || game.i18n.localize("ROLENROLL.Inventory.UntitledItem");
+    const name = item.name?.trim() || localize("ROLENROLL.Inventory.UntitledItem");
     const details = item.details?.trim();
     const quantity = Number(item.quantity ?? 0) || 0;
     const content = `
       <div class="role-roll-chat">
-        <div class="role-roll-header"><strong>${escapeHtml(game.i18n.format("ROLENROLL.Inventory.UsedItem", { item: name }))}</strong></div>
+        <div class="role-roll-header"><strong>${escapeHtml(localize("ROLENROLL.Inventory.UsedItem", { item: name }))}</strong></div>
         <dl class="role-roll-summary">
-          <div><dt>${game.i18n.localize("ROLENROLL.Inventory.Quantity")}</dt><dd>${quantity}</dd></div>
+          <div><dt>${localize("ROLENROLL.Inventory.Quantity")}</dt><dd>${quantity}</dd></div>
         </dl>
         ${details ? `<p>${escapeHtml(details).replace(/\n/g, "<br>")}</p>` : ""}
       </div>
@@ -1123,7 +1280,7 @@ class RolenrollActorSheet extends ActorSheet {
 
     const slot = STATUS_SLOTS.find((key) => !isEntryActive(this.actor.system.statusEffects?.[key]));
     if (!slot) {
-      ui.notifications.warn(game.i18n.localize("ROLENROLL.Status.NoSlots"));
+      ui.notifications.warn(localize("ROLENROLL.Status.NoSlots"));
       return;
     }
 
@@ -1157,11 +1314,11 @@ class RolenrollActorSheet extends ActorSheet {
     event.preventDefault();
 
     const attribute = event.currentTarget.dataset.rollAttribute;
-    const label = game.i18n.localize(`ROLENROLL.Attribute.${attribute}`);
+    const label = localize(`ROLENROLL.Attribute.${attribute}`);
     const totalDice = Number(this.actor.system.attributes?.[attribute] ?? 0);
 
     if (!Number.isFinite(totalDice) || totalDice <= 0) {
-      ui.notifications.warn(game.i18n.localize("ROLENROLL.Roll.NoDice"));
+      ui.notifications.warn(localize("ROLENROLL.Roll.NoDice"));
       return;
     }
 
@@ -1185,14 +1342,14 @@ class RolenrollActorSheet extends ActorSheet {
     const totalDice = parts.dice;
 
     if (totalDice <= 0) {
-      ui.notifications.warn(game.i18n.localize("ROLENROLL.Roll.NoDice"));
+      ui.notifications.warn(localize("ROLENROLL.Roll.NoDice"));
       return;
     }
 
     const globalSuccess = Number(this.actor.system.roll?.success ?? 0) || 0;
 
     this.#openRollDialog({
-      label: game.i18n.localize(`ROLENROLL.Skill.${skillKey}`),
+      label: localize(`ROLENROLL.Skill.${skillKey}`),
       totalDice,
       specialDice: this.actor.system.roll?.specialDice ?? "",
       success: Math.max(0, globalSuccess + parts.successKeys.length),
@@ -1212,13 +1369,13 @@ class RolenrollActorSheet extends ActorSheet {
     const totalDice = skillDice + dependencyParts.dice;
 
     if (totalDice <= 0) {
-      ui.notifications.warn(game.i18n.localize("ROLENROLL.Roll.NoDice"));
+      ui.notifications.warn(localize("ROLENROLL.Roll.NoDice"));
       return;
     }
 
     const globalSuccess = Number(this.actor.system.roll?.success ?? 0) || 0;
     const skillSuccess = extraSkill.bonus ? 1 : 0;
-    const label = extraSkill.name?.trim() || game.i18n.localize("ROLENROLL.ExtraSkill.Untitled");
+    const label = extraSkill.name?.trim() || localize("ROLENROLL.ExtraSkill.Untitled");
 
     this.#openRollDialog({
       label,
@@ -1235,35 +1392,35 @@ class RolenrollActorSheet extends ActorSheet {
     const content = `
       <form class="rolenroll-roll-dialog">
         <div class="form-group">
-          <label>${game.i18n.localize("ROLENROLL.Roll.TotalDice")}</label>
+          <label>${localize("ROLENROLL.Roll.TotalDice")}</label>
           <input type="number" name="totalDice" min="1" max="50" value="${totalDice}">
         </div>
         <div class="form-group special-dice-builder">
-          <label>${game.i18n.localize("ROLENROLL.Roll.SpecialDice")}</label>
+          <label>${localize("ROLENROLL.Roll.SpecialDice")}</label>
           <input type="hidden" name="specialDice" value="${escapeHtml(specialDice)}">
           <div class="special-dice-list">${buildSpecialDicePreviewHtml(specialDice)}</div>
         </div>
         <div class="form-group">
-          <label>${game.i18n.localize("ROLENROLL.Roll.Succeed")}</label>
+          <label>${localize("ROLENROLL.Roll.Succeed")}</label>
           <input type="number" name="success" min="0" value="${success}">
         </div>
         <div class="form-group">
-          <label>${game.i18n.localize("ROLENROLL.Roll.Penalty")}</label>
+          <label>${localize("ROLENROLL.Roll.Penalty")}</label>
           <input type="number" name="penalty" min="0" value="${penalty}">
         </div>
       </form>
     `;
 
     new Dialog({
-      title: game.i18n.format("ROLENROLL.Roll.Attribute", { attribute: label }),
+      title: localize("ROLENROLL.Roll.Attribute", { attribute: label }),
       content,
       buttons: {
         roll: {
-          label: game.i18n.localize("ROLENROLL.Action.Roll"),
+          label: localize("ROLENROLL.Action.Roll"),
           callback: (html) => this.#performPoolRoll(label, html)
         },
         cancel: {
-          label: game.i18n.localize("Cancel")
+          label: localize("Cancel")
         }
       },
       default: "roll"
@@ -1279,7 +1436,7 @@ class RolenrollActorSheet extends ActorSheet {
     const penalty = Math.max(0, Number(formData.get("penalty") ?? 0) || 0);
 
     if (!Number.isFinite(totalDice) || totalDice <= 0) {
-      ui.notifications.warn(game.i18n.localize("ROLENROLL.Roll.NoDice"));
+      ui.notifications.warn(localize("ROLENROLL.Roll.NoDice"));
       return;
     }
 
@@ -1288,6 +1445,8 @@ class RolenrollActorSheet extends ActorSheet {
 }
 
 Hooks.once("init", () => {
+  Handlebars.registerHelper("localize", (key, options) => localize(key, options?.hash ?? {}));
+
   game.rolenroll = {
     openManualRoll,
     rollPool: performPoolRoll
