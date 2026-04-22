@@ -1097,6 +1097,8 @@ class RolenrollActorSheet extends ActorSheet {
   }
 
   #openRollDialog({ label, totalDice, specialDice = "", success = 0, penalty = 0 }) {
+    void this.close();
+
     const content = `
       <form class="rolenroll-roll-dialog">
         <div class="form-group">
