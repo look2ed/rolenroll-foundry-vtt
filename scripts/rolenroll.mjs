@@ -113,6 +113,23 @@ const INVENTORY_ITEM_SLOTS = [
   "twelve"
 ];
 const EQUIPMENT_LOCATIONS = ["left", "right", "wearing"];
+const STATUS_SLOTS = [
+  "one",
+  "two",
+  "three",
+  "four",
+  "five",
+  "six",
+  "seven",
+  "eight",
+  "nine",
+  "ten",
+  "eleven",
+  "twelve"
+];
+const STATUS_CATEGORIES = ["buff", "injuries", "flaw", "psychiatric"];
+const STATUS_DURATION_KINDS = ["permanent", "temporary"];
+const STATUS_DURATION_MODES = ["turns", "skill-check"];
 
 function clamp(value, min, max) {
   const number = Number(value ?? 0);
@@ -455,6 +472,30 @@ function isEntryActive(entry) {
   return Boolean(entry?.active || entry?.name || entry?.details);
 }
 
+function getStatusCategory(value) {
+  return STATUS_CATEGORIES.includes(value) ? value : "buff";
+}
+
+function getStatusDurationKind(value) {
+  return STATUS_DURATION_KINDS.includes(value) ? value : "permanent";
+}
+
+function getStatusDurationMode(value) {
+  return STATUS_DURATION_MODES.includes(value) ? value : "turns";
+}
+
+function getStatusDurationText(entry) {
+  const durationKind = getStatusDurationKind(entry.durationKind);
+  if (durationKind !== "temporary") return game.i18n.localize("ROLENROLL.Status.Duration.permanent");
+
+  const durationMode = getStatusDurationMode(entry.durationMode);
+  if (durationMode === "skill-check") return game.i18n.localize("ROLENROLL.Status.Duration.skill-check");
+
+  return game.i18n.format("ROLENROLL.Status.Duration.turnsText", {
+    turns: Math.max(0, Number(entry.durationTurns ?? 0) || 0)
+  });
+}
+
 function getDependencyRollParts(actor, dependencyIds) {
   const successKeys = new Set();
   let dice = 0;
@@ -502,7 +543,12 @@ class RolenrollCharacterData extends foundry.abstract.TypeDataModel {
       profile: new fields.SchemaField({
         level: new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),
         exp: new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),
-        expMax: new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 })
+        expMax: new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),
+        gender: new fields.StringField({ required: true, initial: "" }),
+        age: new fields.StringField({ required: true, initial: "" }),
+        race: new fields.StringField({ required: true, initial: "" }),
+        willSource: new fields.StringField({ required: true, initial: "" }),
+        background: new fields.StringField({ required: true, initial: "" })
       }),
       attributeBonuses: new fields.SchemaField({
         strength: new fields.BooleanField({ required: true, initial: false }),
@@ -580,6 +626,20 @@ class RolenrollCharacterData extends foundry.abstract.TypeDataModel {
             active: new fields.BooleanField({ required: true, initial: false }),
             name: new fields.StringField({ required: true, initial: "" }),
             quantity: new fields.NumberField({ required: true, integer: true, initial: 1, min: 0 }),
+            details: new fields.StringField({ required: true, initial: "" })
+          })
+        ])
+      )),
+      statusEffects: new fields.SchemaField(Object.fromEntries(
+        STATUS_SLOTS.map((slot) => [
+          slot,
+          new fields.SchemaField({
+            active: new fields.BooleanField({ required: true, initial: false }),
+            name: new fields.StringField({ required: true, initial: "" }),
+            category: new fields.StringField({ required: true, initial: "buff", choices: STATUS_CATEGORIES }),
+            durationKind: new fields.StringField({ required: true, initial: "permanent", choices: STATUS_DURATION_KINDS }),
+            durationMode: new fields.StringField({ required: true, initial: "turns", choices: STATUS_DURATION_MODES }),
+            durationTurns: new fields.NumberField({ required: true, integer: true, initial: 1, min: 0 }),
             details: new fields.StringField({ required: true, initial: "" })
           })
         ])
@@ -796,6 +856,42 @@ class RolenrollActorSheet extends ActorSheet {
       };
     }).filter((item) => item.active);
     context.canAddInventoryItem = context.inventoryItems.length < INVENTORY_ITEM_SLOTS.length;
+    const statusEntries = STATUS_SLOTS.map((slot) => {
+      const entry = this.actor.system.statusEffects?.[slot] ?? {};
+      const category = getStatusCategory(entry.category);
+      const durationKind = getStatusDurationKind(entry.durationKind);
+      const durationMode = getStatusDurationMode(entry.durationMode);
+      return {
+        slot,
+        active: isEntryActive(entry),
+        name: entry.name ?? "",
+        category,
+        categoryLabel: game.i18n.localize(`ROLENROLL.Status.Category.${category}`),
+        durationKind,
+        durationMode,
+        durationTurns: Math.max(0, Number(entry.durationTurns ?? 1) || 0),
+        durationText: getStatusDurationText({ ...entry, category, durationKind, durationMode }),
+        details: entry.details ?? "",
+        categoryOptions: STATUS_CATEGORIES.map((key) => ({
+          key,
+          label: game.i18n.localize(`ROLENROLL.Status.Category.${key}`),
+          selected: key === category
+        })),
+        durationKindOptions: STATUS_DURATION_KINDS.map((key) => ({
+          key,
+          label: game.i18n.localize(`ROLENROLL.Status.Duration.${key}`),
+          selected: key === durationKind
+        })),
+        durationModeOptions: STATUS_DURATION_MODES.map((key) => ({
+          key,
+          label: game.i18n.localize(`ROLENROLL.Status.Duration.${key}`),
+          selected: key === durationMode
+        }))
+      };
+    }).filter((entry) => entry.active);
+    context.statusBuffs = statusEntries.filter((entry) => entry.category === "buff");
+    context.statusDebuffs = statusEntries.filter((entry) => entry.category !== "buff");
+    context.canAddStatus = statusEntries.length < STATUS_SLOTS.length;
     return context;
   }
 
@@ -819,6 +915,8 @@ class RolenrollActorSheet extends ActorSheet {
     html.find("[data-add-inventory-item]").on("click", this.#onAddInventoryItem.bind(this));
     html.find("[data-remove-inventory-item]").on("click", this.#onRemoveInventoryItem.bind(this));
     html.find("[data-use-inventory-item]").on("click", this.#onUseInventoryItem.bind(this));
+    html.find("[data-add-status]").on("click", this.#onAddStatus.bind(this));
+    html.find("[data-remove-status]").on("click", this.#onRemoveStatus.bind(this));
   }
 
   async #onAttributeDot(event) {
@@ -1017,6 +1115,41 @@ class RolenrollActorSheet extends ActorSheet {
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this.actor }),
       content
+    });
+  }
+
+  async #onAddStatus(event) {
+    event.preventDefault();
+
+    const slot = STATUS_SLOTS.find((key) => !isEntryActive(this.actor.system.statusEffects?.[key]));
+    if (!slot) {
+      ui.notifications.warn(game.i18n.localize("ROLENROLL.Status.NoSlots"));
+      return;
+    }
+
+    await this.actor.update({
+      [`system.statusEffects.${slot}.active`]: true,
+      [`system.statusEffects.${slot}.category`]: "buff",
+      [`system.statusEffects.${slot}.durationKind`]: "permanent",
+      [`system.statusEffects.${slot}.durationMode`]: "turns",
+      [`system.statusEffects.${slot}.durationTurns`]: 1
+    });
+  }
+
+  async #onRemoveStatus(event) {
+    event.preventDefault();
+
+    const slot = event.currentTarget.dataset.removeStatus;
+    if (!STATUS_SLOTS.includes(slot)) return;
+
+    await this.actor.update({
+      [`system.statusEffects.${slot}.active`]: false,
+      [`system.statusEffects.${slot}.name`]: "",
+      [`system.statusEffects.${slot}.category`]: "buff",
+      [`system.statusEffects.${slot}.durationKind`]: "permanent",
+      [`system.statusEffects.${slot}.durationMode`]: "turns",
+      [`system.statusEffects.${slot}.durationTurns`]: 1,
+      [`system.statusEffects.${slot}.details`]: ""
     });
   }
 

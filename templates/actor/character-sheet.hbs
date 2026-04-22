@@ -57,7 +57,8 @@
     <a class="item" data-tab="general">{{localize "ROLENROLL.Tab.GeneralAbility"}}</a>
     <a class="item" data-tab="extra">{{localize "ROLENROLL.Tab.ExtraSkill"}}</a>
     <a class="item" data-tab="inventory">{{localize "ROLENROLL.Tab.Inventory"}}</a>
-    <a class="item" data-tab="notes">{{localize "ROLENROLL.Tab.Notes"}}</a>
+    <a class="item" data-tab="status">{{localize "ROLENROLL.Tab.Status"}}</a>
+    <a class="item" data-tab="more">{{localize "ROLENROLL.Tab.More"}}</a>
   </nav>
 
   <section class="sheet-body">
@@ -301,8 +302,149 @@
       </div>
     </div>
 
-    <div class="tab" data-group="primary" data-tab="notes">
-      {{editor system.notes target="system.notes" button=true owner=owner editable=editable}}
+    <div class="tab" data-group="primary" data-tab="status">
+      <div class="status-toolbar">
+        <button type="button" data-add-status>{{localize "ROLENROLL.Status.Add"}}</button>
+      </div>
+
+      <div class="status-layout">
+        <section class="status-column">
+          <h2>{{localize "ROLENROLL.Status.Buffs"}}</h2>
+          <div class="status-entry-list">
+            {{#each statusBuffs}}
+              <article class="status-entry status-entry-buff" data-status-entry="{{slot}}">
+                <input type="hidden" name="system.statusEffects.{{slot}}.active" value="true">
+                <label class="status-entry-name">
+                  <span>{{localize "ROLENROLL.Status.Name"}}</span>
+                  <input type="text" name="system.statusEffects.{{slot}}.name" value="{{name}}">
+                </label>
+                <label>
+                  <span>{{localize "ROLENROLL.Status.Category"}}</span>
+                  <select name="system.statusEffects.{{slot}}.category">
+                    {{#each categoryOptions}}
+                      <option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+                    {{/each}}
+                  </select>
+                </label>
+                <label>
+                  <span>{{localize "ROLENROLL.Status.Duration"}}</span>
+                  <select name="system.statusEffects.{{slot}}.durationKind">
+                    {{#each durationKindOptions}}
+                      <option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+                    {{/each}}
+                  </select>
+                </label>
+                <label>
+                  <span>{{localize "ROLENROLL.Status.Until"}}</span>
+                  <select name="system.statusEffects.{{slot}}.durationMode">
+                    {{#each durationModeOptions}}
+                      <option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+                    {{/each}}
+                  </select>
+                </label>
+                <label>
+                  <span>{{localize "ROLENROLL.Status.Turns"}}</span>
+                  <input type="number" name="system.statusEffects.{{slot}}.durationTurns" value="{{durationTurns}}" min="0">
+                </label>
+                <div class="status-entry-meta">
+                  <span>{{categoryLabel}}</span>
+                  <span>{{durationText}}</span>
+                </div>
+                <label class="status-entry-details">
+                  <span>{{localize "ROLENROLL.Status.Details"}}</span>
+                  <textarea name="system.statusEffects.{{slot}}.details">{{details}}</textarea>
+                </label>
+                <div class="status-entry-actions">
+                  <button type="button" data-remove-status="{{slot}}">{{localize "ROLENROLL.Action.Remove"}}</button>
+                </div>
+              </article>
+            {{else}}
+              <p class="empty-list">{{localize "ROLENROLL.Status.NoBuffs"}}</p>
+            {{/each}}
+          </div>
+        </section>
+
+        <section class="status-column">
+          <h2>{{localize "ROLENROLL.Status.Debuffs"}}</h2>
+          <div class="status-entry-list">
+            {{#each statusDebuffs}}
+              <article class="status-entry status-entry-debuff" data-status-entry="{{slot}}">
+                <input type="hidden" name="system.statusEffects.{{slot}}.active" value="true">
+                <label class="status-entry-name">
+                  <span>{{localize "ROLENROLL.Status.Name"}}</span>
+                  <input type="text" name="system.statusEffects.{{slot}}.name" value="{{name}}">
+                </label>
+                <label>
+                  <span>{{localize "ROLENROLL.Status.Category"}}</span>
+                  <select name="system.statusEffects.{{slot}}.category">
+                    {{#each categoryOptions}}
+                      <option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+                    {{/each}}
+                  </select>
+                </label>
+                <label>
+                  <span>{{localize "ROLENROLL.Status.Duration"}}</span>
+                  <select name="system.statusEffects.{{slot}}.durationKind">
+                    {{#each durationKindOptions}}
+                      <option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+                    {{/each}}
+                  </select>
+                </label>
+                <label>
+                  <span>{{localize "ROLENROLL.Status.Until"}}</span>
+                  <select name="system.statusEffects.{{slot}}.durationMode">
+                    {{#each durationModeOptions}}
+                      <option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+                    {{/each}}
+                  </select>
+                </label>
+                <label>
+                  <span>{{localize "ROLENROLL.Status.Turns"}}</span>
+                  <input type="number" name="system.statusEffects.{{slot}}.durationTurns" value="{{durationTurns}}" min="0">
+                </label>
+                <div class="status-entry-meta">
+                  <span>{{categoryLabel}}</span>
+                  <span>{{durationText}}</span>
+                </div>
+                <label class="status-entry-details">
+                  <span>{{localize "ROLENROLL.Status.Details"}}</span>
+                  <textarea name="system.statusEffects.{{slot}}.details">{{details}}</textarea>
+                </label>
+                <div class="status-entry-actions">
+                  <button type="button" data-remove-status="{{slot}}">{{localize "ROLENROLL.Action.Remove"}}</button>
+                </div>
+              </article>
+            {{else}}
+              <p class="empty-list">{{localize "ROLENROLL.Status.NoDebuffs"}}</p>
+            {{/each}}
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <div class="tab" data-group="primary" data-tab="more">
+      <section class="more-profile">
+        <label>
+          <span>{{localize "ROLENROLL.Profile.Gender"}}</span>
+          <input type="text" name="system.profile.gender" value="{{system.profile.gender}}">
+        </label>
+        <label>
+          <span>{{localize "ROLENROLL.Profile.Age"}}</span>
+          <input type="text" name="system.profile.age" value="{{system.profile.age}}">
+        </label>
+        <label>
+          <span>{{localize "ROLENROLL.Profile.Race"}}</span>
+          <input type="text" name="system.profile.race" value="{{system.profile.race}}">
+        </label>
+        <label>
+          <span>{{localize "ROLENROLL.Profile.WillSource"}}</span>
+          <input type="text" name="system.profile.willSource" value="{{system.profile.willSource}}">
+        </label>
+        <label class="more-profile-background">
+          <span>{{localize "ROLENROLL.Profile.Background"}}</span>
+          <textarea name="system.profile.background">{{system.profile.background}}</textarea>
+        </label>
+      </section>
     </div>
   </section>
 </form>

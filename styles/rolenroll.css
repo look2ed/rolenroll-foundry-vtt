@@ -426,6 +426,102 @@
   justify-content: flex-end;
 }
 
+.rolenroll .status-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 10px;
+}
+
+.rolenroll .status-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.rolenroll .status-column {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.rolenroll .status-column h2 {
+  margin: 0;
+  color: #173a3f;
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.rolenroll .status-entry-list {
+  display: grid;
+  gap: 10px;
+}
+
+.rolenroll .status-entry {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #d6d1c5;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.rolenroll .status-entry-buff {
+  border-color: #9eb68e;
+  background: #f4fbef;
+}
+
+.rolenroll .status-entry-debuff {
+  border-color: #c99993;
+  background: #fff3f1;
+}
+
+.rolenroll .status-entry-name,
+.rolenroll .status-entry-meta,
+.rolenroll .status-entry-details,
+.rolenroll .status-entry-actions {
+  grid-column: 1 / -1;
+}
+
+.rolenroll .status-entry-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  color: #5f5b50;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.rolenroll .status-entry-meta span {
+  padding: 3px 7px;
+  border: 1px solid #d6d1c5;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.rolenroll .status-entry-details textarea {
+  min-height: 76px;
+}
+
+.rolenroll .status-entry-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.rolenroll .more-profile {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.rolenroll .more-profile-background {
+  grid-column: 1 / -1;
+}
+
+.rolenroll .more-profile-background textarea {
+  min-height: 220px;
+}
+
 .rolenroll .empty-list {
   margin: 0;
   padding: 12px;
@@ -463,7 +559,10 @@
   .rolenroll .extra-skill-row,
   .rolenroll .dependency-grid,
   .rolenroll .inventory-layout,
-  .rolenroll .inventory-entry {
+  .rolenroll .inventory-entry,
+  .rolenroll .status-layout,
+  .rolenroll .status-entry,
+  .rolenroll .more-profile {
     grid-template-columns: 1fr;
   }
 }
