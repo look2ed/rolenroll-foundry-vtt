@@ -1445,7 +1445,7 @@ class RolenrollActorSheet extends ActorSheet {
 }
 
 Hooks.once("init", () => {
-  Handlebars.registerHelper("localize", (key, options) => localize(key, options?.hash ?? {}));
+  Handlebars.registerHelper("rolenrollLocalize", (key, options) => localize(key, options?.hash ?? {}));
 
   game.rolenroll = {
     openManualRoll,

@@ -2,7 +2,7 @@
   "id": "rolenroll",
   "title": "Role & Roll",
   "description": "Unofficial Foundry VTT system for Role & Roll.",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "compatibility": {
     "minimum": 12,
     "verified": 14
