@@ -202,25 +202,20 @@
 
           <div class="inventory-entry-list">
             {{#each equipmentSlots}}
-              <article class="inventory-entry" data-equipment-entry="{{slot}}">
-                <input type="hidden" name="system.equipmentEntries.{{slot}}.active" value="true">
-                <label class="inventory-entry-name">
-                  <span>{{rolenrollLocalize "ROLENROLL.Inventory.GearName"}}</span>
-                  <input type="text" name="system.equipmentEntries.{{slot}}.name" value="{{name}}">
-                </label>
-                <label>
-                  <span>{{rolenrollLocalize "ROLENROLL.Inventory.Location"}}</span>
-                  <select name="system.equipmentEntries.{{slot}}.location">
-                    {{#each locationOptions}}
-                      <option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>
-                    {{/each}}
-                  </select>
-                </label>
-                <label class="inventory-entry-details">
-                  <span>{{rolenrollLocalize "ROLENROLL.Inventory.Details"}}</span>
-                  <textarea name="system.equipmentEntries.{{slot}}.details">{{details}}</textarea>
-                </label>
-                <div class="inventory-entry-actions">
+              <article class="gear-card" data-equipment-entry="{{slot}}">
+                <div class="gear-card-main">
+                  <strong>{{#if name}}{{name}}{{else}}{{rolenrollLocalize "ROLENROLL.Inventory.GearName"}}{{/if}}</strong>
+                  <div class="gear-card-meta">
+                    <span>{{locationLabel}}</span>
+                    {{#if damage}}<span>{{rolenrollLocalize "ROLENROLL.Inventory.Damage"}} {{damage}}</span>{{/if}}
+                    {{#if charge}}<span>{{rolenrollLocalize "ROLENROLL.Inventory.Charge"}} {{charge}}</span>{{/if}}
+                    {{#if defense}}<span>{{rolenrollLocalize "ROLENROLL.Inventory.Defense"}} {{defense}}</span>{{/if}}
+                    {{#if toughness}}<span>{{rolenrollLocalize "ROLENROLL.Inventory.Toughness"}} {{toughness}}</span>{{/if}}
+                  </div>
+                  {{#if details}}<p>{{details}}</p>{{/if}}
+                </div>
+                <div class="gear-card-actions">
+                  <button type="button" data-edit-equipment="{{slot}}">{{rolenrollLocalize "ROLENROLL.Action.Edit"}}</button>
                   <button type="button" data-remove-equipment="{{slot}}">{{rolenrollLocalize "ROLENROLL.Action.Remove"}}</button>
                 </div>
               </article>

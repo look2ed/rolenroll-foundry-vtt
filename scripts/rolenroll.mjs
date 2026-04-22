@@ -168,7 +168,11 @@ const FALLBACK_LOCALIZATION = {
   "ROLENROLL.Inventory.AddGear": "+ Add Gear",
   "ROLENROLL.Inventory.AddItem": "+ Add Item",
   "ROLENROLL.Inventory.Details": "Details",
+  "ROLENROLL.Inventory.Damage": "Damage",
+  "ROLENROLL.Inventory.Charge": "Charge",
+  "ROLENROLL.Inventory.Defense": "DEF",
   "ROLENROLL.Inventory.Equipment": "Equipment",
+  "ROLENROLL.Inventory.EditGear": "Edit Gear",
   "ROLENROLL.Inventory.GearName": "Gear",
   "ROLENROLL.Inventory.ItemName": "Item",
   "ROLENROLL.Inventory.Items": "Inventory",
@@ -181,6 +185,8 @@ const FALLBACK_LOCALIZATION = {
   "ROLENROLL.Inventory.NoItems": "No inventory items yet.",
   "ROLENROLL.Inventory.NoItemSlots": "No empty inventory item slots are available.",
   "ROLENROLL.Inventory.Quantity": "Qty",
+  "ROLENROLL.Inventory.SaveGear": "Save Gear",
+  "ROLENROLL.Inventory.Toughness": "TOU",
   "ROLENROLL.Inventory.UntitledItem": "Inventory Item",
   "ROLENROLL.Inventory.Use": "Use",
   "ROLENROLL.Inventory.UsedItem": "Used {item}",
@@ -641,7 +647,15 @@ function buildDependencyValue(ids) {
 }
 
 function isEntryActive(entry) {
-  return Boolean(entry?.active || entry?.name || entry?.details);
+  return Boolean(
+    entry?.active ||
+    entry?.name ||
+    entry?.details ||
+    entry?.damage ||
+    entry?.charge ||
+    entry?.defense ||
+    entry?.toughness
+  );
 }
 
 function getStatusCategory(value) {
@@ -787,6 +801,10 @@ class RolenrollCharacterData extends foundry.abstract.TypeDataModel {
             active: new fields.BooleanField({ required: true, initial: false }),
             name: new fields.StringField({ required: true, initial: "" }),
             location: new fields.StringField({ required: true, initial: "wearing", choices: EQUIPMENT_LOCATIONS }),
+            damage: new fields.StringField({ required: true, initial: "" }),
+            charge: new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),
+            defense: new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),
+            toughness: new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),
             details: new fields.StringField({ required: true, initial: "" })
           })
         ])
@@ -998,6 +1016,11 @@ class RolenrollActorSheet extends ActorSheet {
         active: isEntryActive(entry),
         name: entry.name ?? "",
         location,
+        locationLabel: localize(`ROLENROLL.Inventory.Location.${location}`),
+        damage: entry.damage ?? "",
+        charge: Number(entry.charge ?? 0) || 0,
+        defense: Number(entry.defense ?? 0) || 0,
+        toughness: Number(entry.toughness ?? 0) || 0,
         details: entry.details ?? "",
         locationOptions: EQUIPMENT_LOCATIONS.map((key) => ({
           key,
@@ -1070,6 +1093,7 @@ class RolenrollActorSheet extends ActorSheet {
     html.find("[data-remove-extra-skill]").on("click", this.#onRemoveExtraSkill.bind(this));
     html.find("[data-extra-skill-dependency]").on("change", this.#onExtraSkillDependency.bind(this));
     html.find("[data-add-equipment]").on("click", this.#onAddEquipment.bind(this));
+    html.find("[data-edit-equipment]").on("click", this.#onEditEquipment.bind(this));
     html.find("[data-remove-equipment]").on("click", this.#onRemoveEquipment.bind(this));
     html.find("[data-add-inventory-item]").on("click", this.#onAddInventoryItem.bind(this));
     html.find("[data-remove-inventory-item]").on("click", this.#onRemoveInventoryItem.bind(this));
@@ -1174,6 +1198,85 @@ class RolenrollActorSheet extends ActorSheet {
     }
 
     await this.actor.update({ [`system.equipmentEntries.${slot}.active`]: true });
+    this.#openEquipmentDialog(slot);
+  }
+
+  #onEditEquipment(event) {
+    event.preventDefault();
+
+    const slot = event.currentTarget.dataset.editEquipment;
+    if (!EQUIPMENT_ENTRY_SLOTS.includes(slot)) return;
+
+    this.#openEquipmentDialog(slot);
+  }
+
+  #openEquipmentDialog(slot) {
+    const entry = this.actor.system.equipmentEntries?.[slot] ?? {};
+    const location = EQUIPMENT_LOCATIONS.includes(entry.location) ? entry.location : "wearing";
+    const locationOptions = EQUIPMENT_LOCATIONS.map((key) => `
+      <option value="${key}" ${key === location ? "selected" : ""}>${localize(`ROLENROLL.Inventory.Location.${key}`)}</option>
+    `).join("");
+
+    const content = `
+      <form class="rolenroll-equipment-dialog">
+        <div class="form-group">
+          <label>${localize("ROLENROLL.Inventory.GearName")}</label>
+          <input type="text" name="name" value="${escapeHtml(entry.name ?? "")}" autofocus>
+        </div>
+        <div class="form-group">
+          <label>${localize("ROLENROLL.Inventory.Location")}</label>
+          <select name="location">${locationOptions}</select>
+        </div>
+        <div class="form-group">
+          <label>${localize("ROLENROLL.Inventory.Damage")}</label>
+          <input type="text" name="damage" value="${escapeHtml(entry.damage ?? "")}">
+        </div>
+        <div class="form-group">
+          <label>${localize("ROLENROLL.Inventory.Charge")}</label>
+          <input type="number" name="charge" value="${Number(entry.charge ?? 0) || 0}" min="0">
+        </div>
+        <div class="form-group">
+          <label>${localize("ROLENROLL.Inventory.Defense")}</label>
+          <input type="number" name="defense" value="${Number(entry.defense ?? 0) || 0}" min="0">
+        </div>
+        <div class="form-group">
+          <label>${localize("ROLENROLL.Inventory.Toughness")}</label>
+          <input type="number" name="toughness" value="${Number(entry.toughness ?? 0) || 0}" min="0">
+        </div>
+        <div class="form-group">
+          <label>${localize("ROLENROLL.Inventory.Details")}</label>
+          <textarea name="details">${escapeHtml(entry.details ?? "")}</textarea>
+        </div>
+      </form>
+    `;
+
+    new Dialog({
+      title: localize("ROLENROLL.Inventory.EditGear"),
+      content,
+      buttons: {
+        save: {
+          label: localize("ROLENROLL.Inventory.SaveGear"),
+          callback: async (html) => {
+            const form = html[0]?.querySelector("form");
+            const formData = new FormData(form);
+            await this.actor.update({
+              [`system.equipmentEntries.${slot}.active`]: true,
+              [`system.equipmentEntries.${slot}.name`]: String(formData.get("name") ?? "").trim(),
+              [`system.equipmentEntries.${slot}.location`]: String(formData.get("location") ?? "wearing"),
+              [`system.equipmentEntries.${slot}.damage`]: String(formData.get("damage") ?? "").trim(),
+              [`system.equipmentEntries.${slot}.charge`]: Math.max(0, Number(formData.get("charge") ?? 0) || 0),
+              [`system.equipmentEntries.${slot}.defense`]: Math.max(0, Number(formData.get("defense") ?? 0) || 0),
+              [`system.equipmentEntries.${slot}.toughness`]: Math.max(0, Number(formData.get("toughness") ?? 0) || 0),
+              [`system.equipmentEntries.${slot}.details`]: String(formData.get("details") ?? "").trim()
+            });
+          }
+        },
+        cancel: {
+          label: localize("Cancel")
+        }
+      },
+      default: "save"
+    }).render(true);
   }
 
   async #onRemoveEquipment(event) {
@@ -1186,6 +1289,10 @@ class RolenrollActorSheet extends ActorSheet {
       [`system.equipmentEntries.${slot}.active`]: false,
       [`system.equipmentEntries.${slot}.name`]: "",
       [`system.equipmentEntries.${slot}.location`]: "wearing",
+      [`system.equipmentEntries.${slot}.damage`]: "",
+      [`system.equipmentEntries.${slot}.charge`]: 0,
+      [`system.equipmentEntries.${slot}.defense`]: 0,
+      [`system.equipmentEntries.${slot}.toughness`]: 0,
       [`system.equipmentEntries.${slot}.details`]: ""
     });
   }
