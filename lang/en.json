@@ -1,6 +1,6 @@
 {
   "ROLENROLL.Action.Roll": "Roll",
-  "ROLENROLL.Action.RollD6": "Roll Pool",
+  "ROLENROLL.Action.RollD6": "Roll",
   "ROLENROLL.Action.Edit": "Edit",
   "ROLENROLL.Action.Remove": "Remove",
   "ROLENROLL.Actor.Name": "Character Name",
@@ -64,6 +64,7 @@
   "ROLENROLL.Inventory.Toughness": "TOU",
   "ROLENROLL.Inventory.UntitledItem": "Inventory Item",
   "ROLENROLL.Inventory.Use": "Use",
+  "ROLENROLL.Inventory.UseEmpty": "{item} has no quantity left.",
   "ROLENROLL.Inventory.UsedItem": "Used {item}",
   "ROLENROLL.Profile.Age": "Age",
   "ROLENROLL.Profile.Background": "Character Background",

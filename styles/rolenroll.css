@@ -728,7 +728,7 @@
   justify-content: flex-end;
 }
 
-.rolenroll .status-turn-controls {
+.rolenroll .inline-counter {
   display: inline-flex;
   width: fit-content;
   align-items: center;
@@ -739,18 +739,22 @@
   background: rgba(255, 255, 255, 0.72);
 }
 
-.rolenroll .status-turn-controls button {
+.rolenroll .inline-counter button {
   width: 28px;
   min-width: 28px;
   height: 28px;
   padding: 0;
 }
 
-.rolenroll .status-turn-controls span {
-  min-width: 28px;
+.rolenroll .inline-counter span {
+  min-width: 62px;
   color: #173a3f;
   font-weight: 900;
   text-align: center;
+}
+
+.rolenroll .compact-card-counter {
+  margin-top: 2px;
 }
 
 .rolenroll .more-profile {
@@ -792,6 +796,11 @@
 .rolenroll button:hover {
   background: #dcebea;
   border-color: #23545a;
+}
+
+.rolenroll button:disabled {
+  opacity: 0.48;
+  cursor: not-allowed;
 }
 
 @media (max-width: 1000px) {
@@ -844,10 +853,12 @@
 .role-roll-chat {
   display: grid;
   gap: 8px;
+  color: #111111;
 }
 
 .role-roll-header {
   font-size: 1.05rem;
+  color: #111111;
 }
 
 .role-roll-dice-row {
@@ -858,7 +869,7 @@
 }
 
 .role-roll-dice-row em {
-  color: #5f5b50;
+  color: #111111;
   font-size: 0.85rem;
 }
 
@@ -914,11 +925,12 @@
 }
 
 .role-roll-summary dt {
-  color: #5f5b50;
+  color: #111111;
   font-weight: 700;
 }
 
 .role-roll-summary dd {
+  color: #111111;
   font-weight: 800;
 }
 
@@ -926,5 +938,12 @@
   margin-top: 4px;
   padding-top: 6px;
   border-top: 1px solid #d6d1c5;
+  color: #9f1f1f;
   font-size: 1.08rem;
+}
+
+.role-roll-summary .role-roll-total dt,
+.role-roll-summary .role-roll-total dd {
+  color: #9f1f1f;
+  font-weight: 900;
 }

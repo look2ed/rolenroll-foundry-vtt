@@ -135,7 +135,7 @@ const FALLBACK_LOCALIZATION = {
   "Cancel": "Cancel",
   "ROLENROLL.Action.Edit": "Edit",
   "ROLENROLL.Action.Roll": "Roll",
-  "ROLENROLL.Action.RollD6": "Roll Pool",
+  "ROLENROLL.Action.RollD6": "Roll",
   "ROLENROLL.Action.Remove": "Remove",
   "ROLENROLL.Actor.Name": "Character Name",
   "ROLENROLL.Attribute.aptitude": "Aptitude",
@@ -194,6 +194,7 @@ const FALLBACK_LOCALIZATION = {
   "ROLENROLL.Inventory.Toughness": "TOU",
   "ROLENROLL.Inventory.UntitledItem": "Inventory Item",
   "ROLENROLL.Inventory.Use": "Use",
+  "ROLENROLL.Inventory.UseEmpty": "{item} has no quantity left.",
   "ROLENROLL.Inventory.UsedItem": "Used {item}",
   "ROLENROLL.Profile.Age": "Age",
   "ROLENROLL.Profile.Background": "Character Background",
@@ -706,8 +707,7 @@ function getStatusDurationText(entry) {
 }
 
 function isTurnStatus(entry) {
-  return getStatusDurationKind(entry.durationKind) === "temporary"
-    && getStatusDurationMode(entry.durationMode) === "turns";
+  return getStatusDurationMode(entry.durationMode) === "turns";
 }
 
 function getDependencyRollParts(actor, dependencyIds) {
@@ -1125,6 +1125,7 @@ class RolenrollActorSheet extends ActorSheet {
     html.find("[data-extra-skill-dependency]").on("change", this.#onExtraSkillDependency.bind(this));
     html.find("[data-add-equipment]").on("click", this.#onAddEquipment.bind(this));
     html.find("[data-edit-equipment]").on("click", this.#onEditEquipment.bind(this));
+    html.find("[data-adjust-equipment-charge]").on("click", this.#onAdjustEquipmentCharge.bind(this));
     html.find("[data-remove-equipment]").on("click", this.#onRemoveEquipment.bind(this));
     html.find("[data-add-inventory-item]").on("click", this.#onAddInventoryItem.bind(this));
     html.find("[data-edit-inventory-item]").on("click", this.#onEditInventoryItem.bind(this));
@@ -1329,6 +1330,22 @@ class RolenrollActorSheet extends ActorSheet {
     this.#openEquipmentDialog(slot);
   }
 
+  async #onAdjustEquipmentCharge(event) {
+    event.preventDefault();
+
+    const slot = event.currentTarget.dataset.adjustEquipmentCharge;
+    const delta = Number(event.currentTarget.dataset.delta ?? 0);
+    if (!EQUIPMENT_ENTRY_SLOTS.includes(slot) || !Number.isFinite(delta)) return;
+
+    const entry = this.actor.system.equipmentEntries?.[slot];
+    if (!entry || !isEntryActive(entry)) return;
+
+    const currentCharge = Math.max(0, Number(entry.charge ?? 0) || 0);
+    await this.actor.update({
+      [`system.equipmentEntries.${slot}.charge`]: Math.max(0, currentCharge + delta)
+    });
+  }
+
   #openEquipmentDialog(slot) {
     const entry = this.actor.system.equipmentEntries?.[slot] ?? {};
     const location = EQUIPMENT_LOCATIONS.includes(entry.location) ? entry.location : "wearing";
@@ -1506,6 +1523,11 @@ class RolenrollActorSheet extends ActorSheet {
     const name = item.name?.trim() || localize("ROLENROLL.Inventory.UntitledItem");
     const details = item.details?.trim();
     const quantity = Number(item.quantity ?? 0) || 0;
+    if (quantity <= 0) {
+      ui.notifications.warn(localize("ROLENROLL.Inventory.UseEmpty", { item: name }));
+      return;
+    }
+
     const nextQuantity = Math.max(0, quantity - 1);
     const content = `
       <div class="role-roll-chat">
