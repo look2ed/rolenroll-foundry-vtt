@@ -286,6 +286,7 @@ const FALLBACK_LOCALIZATION = {
   "ROLENROLL.Status.NoSlots": "No empty status slots are available.",
   "ROLENROLL.Status.Save": "Save Status",
   "ROLENROLL.Status.Turns": "Turns",
+  "ROLENROLL.Status.TurnsLeft": "{turns} turn(s) left",
   "ROLENROLL.Status.Untitled": "Status",
   "ROLENROLL.Status.Until": "Until",
   "ROLENROLL.Tab.Attributes": "Attributes",
@@ -704,6 +705,11 @@ function getStatusDurationText(entry) {
   });
 }
 
+function isTurnStatus(entry) {
+  return getStatusDurationKind(entry.durationKind) === "temporary"
+    && getStatusDurationMode(entry.durationMode) === "turns";
+}
+
 function getDependencyRollParts(actor, dependencyIds) {
   const successKeys = new Set();
   let dice = 0;
@@ -1079,6 +1085,7 @@ class RolenrollActorSheet extends ActorSheet {
         durationMode,
         durationTurns: Math.max(0, Number(entry.durationTurns ?? 1) || 0),
         durationText: getStatusDurationText({ ...entry, category, durationKind, durationMode }),
+        isTurnStatus: isTurnStatus({ ...entry, durationKind, durationMode }),
         details: entry.details ?? "",
         categoryOptions: STATUS_CATEGORIES.map((key) => ({
           key,
@@ -1125,6 +1132,7 @@ class RolenrollActorSheet extends ActorSheet {
     html.find("[data-use-inventory-item]").on("click", this.#onUseInventoryItem.bind(this));
     html.find("[data-add-status]").on("click", this.#onAddStatus.bind(this));
     html.find("[data-edit-status]").on("click", this.#onEditStatus.bind(this));
+    html.find("[data-adjust-status-turns]").on("click", this.#onAdjustStatusTurns.bind(this));
     html.find("[data-remove-status]").on("click", this.#onRemoveStatus.bind(this));
   }
 
@@ -1194,18 +1202,15 @@ class RolenrollActorSheet extends ActorSheet {
   #openExtraSkillDialog(slot) {
     const extraSkill = this.actor.system.extraSkills?.[slot] ?? {};
     const dependencies = parseDependencyIds(extraSkill.dependencies);
-    const dependencyOptions = ATTRIBUTE_KEYS.map((key) => ({
-      key: `attribute:${key}`,
-      label: `${localize(`ROLENROLL.Attribute.${key}`)} (${localize(`ROLENROLL.AttributeCode.${key}`)})`
-    })).concat(GENERAL_SKILLS.map((skill) => ({
-      key: `skill:${skill.key}`,
-      label: localize(`ROLENROLL.Skill.${skill.key}`)
-    })));
-    const dependencyCheckboxes = dependencyOptions.map((option) => `
-      <label class="dependency-option">
-        <input type="checkbox" name="dependencies" value="${escapeHtml(option.key)}" ${dependencies.includes(option.key) ? "checked" : ""}>
-        <span>${escapeHtml(option.label)}</span>
-      </label>
+    const attributeOptions = ATTRIBUTE_KEYS.map((key) => `
+      <option value="attribute:${key}" ${dependencies.includes(`attribute:${key}`) ? "selected" : ""}>
+        ${escapeHtml(`${localize(`ROLENROLL.Attribute.${key}`)} (${localize(`ROLENROLL.AttributeCode.${key}`)})`)}
+      </option>
+    `).join("");
+    const generalAbilityOptions = GENERAL_SKILLS.map((skill) => `
+      <option value="skill:${skill.key}" ${dependencies.includes(`skill:${skill.key}`) ? "selected" : ""}>
+        ${escapeHtml(localize(`ROLENROLL.Skill.${skill.key}`))}
+      </option>
     `).join("");
 
     const content = `
@@ -1226,7 +1231,14 @@ class RolenrollActorSheet extends ActorSheet {
         </div>
         <div class="form-group">
           <label>${localize("ROLENROLL.ExtraSkill.LinkedStats")}</label>
-          <div class="dependency-grid">${dependencyCheckboxes}</div>
+          <select class="dependency-select" name="dependencies" multiple size="10">
+            <optgroup label="${escapeHtml(localize("ROLENROLL.Tab.Attributes"))}">
+              ${attributeOptions}
+            </optgroup>
+            <optgroup label="${escapeHtml(localize("ROLENROLL.Tab.GeneralAbility"))}">
+              ${generalAbilityOptions}
+            </optgroup>
+          </select>
         </div>
         <div class="form-group">
           <label>${localize("ROLENROLL.ExtraSkill.Details")}</label>
@@ -1538,6 +1550,22 @@ class RolenrollActorSheet extends ActorSheet {
     if (!STATUS_SLOTS.includes(slot)) return;
 
     this.#openStatusDialog(slot);
+  }
+
+  async #onAdjustStatusTurns(event) {
+    event.preventDefault();
+
+    const slot = event.currentTarget.dataset.adjustStatusTurns;
+    const delta = Number(event.currentTarget.dataset.delta ?? 0);
+    if (!STATUS_SLOTS.includes(slot) || !Number.isFinite(delta)) return;
+
+    const entry = this.actor.system.statusEffects?.[slot];
+    if (!entry || !isTurnStatus(entry)) return;
+
+    const currentTurns = Math.max(0, Number(entry.durationTurns ?? 0) || 0);
+    await this.actor.update({
+      [`system.statusEffects.${slot}.durationTurns`]: Math.max(0, currentTurns + delta)
+    });
   }
 
   #openStatusDialog(slot) {

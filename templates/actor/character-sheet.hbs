@@ -139,8 +139,12 @@
           <article class="compact-card extra-skill-card" data-extra-skill-row="{{slot}}">
             <div class="compact-card-main">
               <strong>{{#if name}}{{name}}{{else}}{{rolenrollLocalize "ROLENROLL.ExtraSkill.Name"}}{{/if}}</strong>
+              <div class="stat-dots compact-card-dots" aria-label="{{name}}">
+                {{#each dots}}
+                  <span class="stat-dot {{#if active}}active{{/if}}"></span>
+                {{/each}}
+              </div>
               <div class="compact-card-meta">
-                <span>{{points}} {{rolenrollLocalize "ROLENROLL.Roll.TotalDice"}}</span>
                 {{#if bonus}}<span>{{rolenrollLocalize "ROLENROLL.Roll.AttributeSucceed"}}</span>{{/if}}
                 {{#each dependencyLabels}}<span>{{this}}</span>{{/each}}
               </div>
@@ -238,6 +242,13 @@
                     <span>{{categoryLabel}}</span>
                     <span>{{durationText}}</span>
                   </div>
+                  {{#if isTurnStatus}}
+                    <div class="status-turn-controls">
+                      <button type="button" data-adjust-status-turns="{{slot}}" data-delta="-1">-</button>
+                      <span>{{durationTurns}}</span>
+                      <button type="button" data-adjust-status-turns="{{slot}}" data-delta="1">+</button>
+                    </div>
+                  {{/if}}
                   {{#if details}}<p>{{details}}</p>{{/if}}
                 </div>
                 <div class="compact-card-actions">
@@ -262,6 +273,13 @@
                     <span>{{categoryLabel}}</span>
                     <span>{{durationText}}</span>
                   </div>
+                  {{#if isTurnStatus}}
+                    <div class="status-turn-controls">
+                      <button type="button" data-adjust-status-turns="{{slot}}" data-delta="-1">-</button>
+                      <span>{{durationTurns}}</span>
+                      <button type="button" data-adjust-status-turns="{{slot}}" data-delta="1">+</button>
+                    </div>
+                  {{/if}}
                   {{#if details}}<p>{{details}}</p>{{/if}}
                 </div>
                 <div class="compact-card-actions">

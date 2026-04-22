@@ -157,6 +157,7 @@
   "ROLENROLL.Status.NoSlots": "No empty status slots are available.",
   "ROLENROLL.Status.Save": "Save Status",
   "ROLENROLL.Status.Turns": "Turns",
+  "ROLENROLL.Status.TurnsLeft": "{turns} turn(s) left",
   "ROLENROLL.Status.Untitled": "Status",
   "ROLENROLL.Status.Until": "Until",
   "ROLENROLL.Tab.Attributes": "Attributes",
