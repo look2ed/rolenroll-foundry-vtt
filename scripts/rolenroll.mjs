@@ -370,6 +370,19 @@ function getSpecialFaceClass(face) {
   return "is-blank";
 }
 
+function buildSpecialDicePreviewHtml(specialDice) {
+  const specialDiceFaces = parseSpecialDiceFaces(specialDice);
+  return specialDiceFaces.length
+    ? specialDiceFaces.map((faces) => `
+      <div class="special-die-card">
+        <div class="special-die-card-faces">
+          ${faces.map((face, index) => `<span class="special-die-face ${getSpecialFaceClass(face)}">${getSpecialFaceDisplay(face, index)}</span>`).join("")}
+        </div>
+      </div>
+    `).join("")
+    : `<p class="special-dice-empty">${game.i18n.localize("ROLENROLL.Roll.NoSpecialDice")}</p>`;
+}
+
 function getAttributeValue(actor, codeOrKey) {
   const key = ATTRIBUTE_CODES[codeOrKey] ?? codeOrKey;
   return Number(actor.system.attributes?.[key] ?? 0) || 0;
@@ -457,6 +470,11 @@ class RolenrollCharacterData extends foundry.abstract.TypeDataModel {
         intelligence: new fields.NumberField({ required: true, integer: true, initial: 1, min: 1, max: 6 }),
         charisma: new fields.NumberField({ required: true, integer: true, initial: 1, min: 1, max: 6 })
       }),
+      profile: new fields.SchemaField({
+        level: new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),
+        exp: new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),
+        expMax: new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 })
+      }),
       attributeBonuses: new fields.SchemaField({
         strength: new fields.BooleanField({ required: true, initial: false }),
         dexterity: new fields.BooleanField({ required: true, initial: false }),
@@ -490,7 +508,6 @@ class RolenrollCharacterData extends foundry.abstract.TypeDataModel {
             dependencies: new fields.StringField({ required: true, initial: "" }),
             attribute: new fields.StringField({ required: true, initial: "strength" }),
             bonus: new fields.BooleanField({ required: true, initial: false }),
-            profession: new fields.BooleanField({ required: true, initial: false }),
             details: new fields.StringField({ required: true, initial: "" })
           })
         ])
@@ -503,6 +520,10 @@ class RolenrollCharacterData extends foundry.abstract.TypeDataModel {
         willpower: new fields.SchemaField({
           value: new fields.NumberField({ required: true, integer: true, initial: 8, min: 0 }),
           max: new fields.NumberField({ required: true, integer: true, initial: 8, min: 0 })
+        }),
+        mental: new fields.SchemaField({
+          value: new fields.NumberField({ required: true, integer: true, initial: 12, min: 0 }),
+          max: new fields.NumberField({ required: true, integer: true, initial: 12, min: 1, max: 18 })
         })
       }),
       defense: new fields.NumberField({ required: true, integer: true, initial: 0, min: 0 }),
@@ -520,6 +541,95 @@ class RolenrollCharacterData extends foundry.abstract.TypeDataModel {
 
 class RolenrollActor extends Actor {}
 class RolenrollItem extends Item {}
+
+async function performPoolRoll({ label, totalDice, specialDice = "", success = 0, penalty = 0, actor = null }) {
+  if (!Number.isFinite(totalDice) || totalDice <= 0) {
+    ui.notifications.warn(game.i18n.localize("ROLENROLL.Roll.NoDice"));
+    return;
+  }
+
+  let specialConfigs;
+  try {
+    specialConfigs = parseSpecialDice(specialDice);
+  } catch (error) {
+    ui.notifications.error(error.message);
+    return;
+  }
+
+  if (specialConfigs.length > totalDice) {
+    ui.notifications.warn(game.i18n.localize("ROLENROLL.Roll.TooManySpecialDice"));
+    return;
+  }
+
+  const dice = [...specialConfigs];
+  for (let i = specialConfigs.length; i < totalDice; i++) dice.push({ kind: "normal" });
+
+  if (dice.length > 50) {
+    ui.notifications.warn(game.i18n.localize("ROLENROLL.Roll.TooManyDice"));
+    return;
+  }
+
+  const speaker = actor
+    ? ChatMessage.getSpeaker({ actor })
+    : ChatMessage.getSpeaker();
+  const result = await rollRolenrollPool(dice, speaker);
+  const content = buildRollMessage({ label, totalDice, specialDice, success, penalty, result });
+
+  await ChatMessage.create({ speaker, content });
+}
+
+function openManualRoll() {
+  const content = `
+    <form class="rolenroll-roll-dialog">
+      <div class="form-group">
+        <label>${game.i18n.localize("ROLENROLL.Roll.Label")}</label>
+        <input type="text" name="label" value="${game.i18n.localize("ROLENROLL.Roll.Manual")}" autofocus>
+      </div>
+      <div class="form-group">
+        <label>${game.i18n.localize("ROLENROLL.Roll.TotalDice")}</label>
+        <input type="number" name="totalDice" min="1" max="50" value="5">
+      </div>
+      <div class="form-group">
+        <label>${game.i18n.localize("ROLENROLL.Roll.SpecialDice")}</label>
+        <input type="text" name="specialDice" value="" placeholder="a1, n2">
+        <p class="notes">${game.i18n.localize("ROLENROLL.Roll.SpecialDiceHint")}</p>
+      </div>
+      <div class="form-group">
+        <label>${game.i18n.localize("ROLENROLL.Roll.Succeed")}</label>
+        <input type="number" name="success" min="0" value="0">
+      </div>
+      <div class="form-group">
+        <label>${game.i18n.localize("ROLENROLL.Roll.Penalty")}</label>
+        <input type="number" name="penalty" min="0" value="0">
+      </div>
+    </form>
+  `;
+
+  new Dialog({
+    title: game.i18n.localize("ROLENROLL.Roll.Manual"),
+    content,
+    buttons: {
+      roll: {
+        label: game.i18n.localize("ROLENROLL.Action.Roll"),
+        callback: async (html) => {
+          const form = html[0]?.querySelector("form");
+          const formData = new FormData(form);
+          await performPoolRoll({
+            label: String(formData.get("label") || game.i18n.localize("ROLENROLL.Roll.Manual")),
+            totalDice: parseInt(formData.get("totalDice") ?? "0", 10),
+            specialDice: String(formData.get("specialDice") ?? "").trim(),
+            success: Math.max(0, Number(formData.get("success") ?? 0) || 0),
+            penalty: Math.max(0, Number(formData.get("penalty") ?? 0) || 0)
+          });
+        }
+      },
+      cancel: {
+        label: game.i18n.localize("Cancel")
+      }
+    },
+    default: "roll"
+  }).render(true);
+}
 
 class RolenrollActorSheet extends ActorSheet {
   static get defaultOptions() {
@@ -597,7 +707,6 @@ class RolenrollActorSheet extends ActorSheet {
         name: extraSkill.name ?? "",
         points: Number(extraSkill.points ?? 0) || 0,
         bonus: Boolean(extraSkill.bonus),
-        profession: Boolean(extraSkill.profession),
         details: extraSkill.details ?? "",
         dependencies: buildDependencyValue(dependencies),
         dots: buildDots(Number(extraSkill.points ?? 0) || 0),
@@ -694,7 +803,6 @@ class RolenrollActorSheet extends ActorSheet {
       [`system.extraSkills.${slot}.dependencies`]: "",
       [`system.extraSkills.${slot}.attribute`]: "strength",
       [`system.extraSkills.${slot}.bonus`]: false,
-      [`system.extraSkills.${slot}.profession`]: false,
       [`system.extraSkills.${slot}.details`]: ""
     });
   }
@@ -815,29 +923,18 @@ class RolenrollActorSheet extends ActorSheet {
 
     const globalSuccess = Number(this.actor.system.roll?.success ?? 0) || 0;
     const skillSuccess = extraSkill.bonus ? 1 : 0;
-    const professionSuccess = extraSkill.profession ? 1 : 0;
     const label = extraSkill.name?.trim() || game.i18n.localize("ROLENROLL.ExtraSkill.Untitled");
 
     this.#openRollDialog({
       label,
       totalDice,
       specialDice: this.actor.system.roll?.specialDice ?? "",
-      success: Math.max(0, globalSuccess + skillSuccess + professionSuccess + dependencyParts.success),
+      success: Math.max(0, globalSuccess + skillSuccess + dependencyParts.success),
       penalty: Math.max(0, Number(this.actor.system.roll?.penalty ?? 0) || 0)
     });
   }
 
   #openRollDialog({ label, totalDice, specialDice = "", success = 0, penalty = 0 }) {
-    const specialDiceFaces = parseSpecialDiceFaces(specialDice);
-    const specialDiceHtml = specialDiceFaces.length
-      ? specialDiceFaces.map((faces) => `
-        <div class="special-die-card">
-          <div class="special-die-card-faces">
-            ${faces.map((face, index) => `<span class="special-die-face ${getSpecialFaceClass(face)}">${getSpecialFaceDisplay(face, index)}</span>`).join("")}
-          </div>
-        </div>
-      `).join("")
-      : `<p class="special-dice-empty">${game.i18n.localize("ROLENROLL.Roll.NoSpecialDice")}</p>`;
     const content = `
       <form class="rolenroll-roll-dialog">
         <div class="form-group">
@@ -847,7 +944,7 @@ class RolenrollActorSheet extends ActorSheet {
         <div class="form-group special-dice-builder">
           <label>${game.i18n.localize("ROLENROLL.Roll.SpecialDice")}</label>
           <input type="hidden" name="specialDice" value="${escapeHtml(specialDice)}">
-          <div class="special-dice-list">${specialDiceHtml}</div>
+          <div class="special-dice-list">${buildSpecialDicePreviewHtml(specialDice)}</div>
         </div>
         <div class="form-group">
           <label>${game.i18n.localize("ROLENROLL.Roll.Succeed")}</label>
@@ -889,39 +986,16 @@ class RolenrollActorSheet extends ActorSheet {
       return;
     }
 
-    let specialConfigs;
-    try {
-      specialConfigs = parseSpecialDice(specialDice);
-    } catch (error) {
-      ui.notifications.error(error.message);
-      return;
-    }
-
-    if (specialConfigs.length > totalDice) {
-      ui.notifications.warn(game.i18n.localize("ROLENROLL.Roll.TooManySpecialDice"));
-      return;
-    }
-
-    const dice = [...specialConfigs];
-    for (let i = specialConfigs.length; i < totalDice; i++) dice.push({ kind: "normal" });
-
-    if (dice.length > 50) {
-      ui.notifications.warn(game.i18n.localize("ROLENROLL.Roll.TooManyDice"));
-      return;
-    }
-
-    const speaker = ChatMessage.getSpeaker({ actor: this.actor });
-    const result = await rollRolenrollPool(dice, speaker);
-    const content = buildRollMessage({ label, totalDice, specialDice, success, penalty, result });
-
-    await ChatMessage.create({
-      speaker,
-      content
-    });
+    await performPoolRoll({ label, totalDice, specialDice, success, penalty, actor: this.actor });
   }
 }
 
 Hooks.once("init", () => {
+  game.rolenroll = {
+    openManualRoll,
+    rollPool: performPoolRoll
+  };
+
   CONFIG.Actor.documentClass = RolenrollActor;
   CONFIG.Item.documentClass = RolenrollItem;
 
@@ -934,5 +1008,18 @@ Hooks.once("init", () => {
     types: ["character"],
     makeDefault: true,
     label: "ROLENROLL.Sheet.Character"
+  });
+});
+
+Hooks.once("ready", async () => {
+  if (!game.user.isGM) return;
+  if (game.macros.getName("Role & Roll Manual Roller")) return;
+
+  await Macro.create({
+    name: "Role & Roll Manual Roller",
+    type: "script",
+    scope: "global",
+    img: "icons/svg/dice-target.svg",
+    command: "game.rolenroll.openManualRoll();"
   });
 });

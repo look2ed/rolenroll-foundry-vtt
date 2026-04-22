@@ -25,9 +25,16 @@
   font-weight: 800;
 }
 
+.rolenroll .profile-grid {
+  display: grid;
+  grid-template-columns: 120px minmax(180px, 1fr);
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
 .rolenroll .resource-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -390,6 +397,7 @@
 
 @media (max-width: 720px) {
   .rolenroll .sheet-header,
+  .rolenroll .profile-grid,
   .rolenroll .resource-grid,
   .rolenroll .attribute-grid,
   .rolenroll .roll-controls,

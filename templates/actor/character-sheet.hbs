@@ -5,6 +5,20 @@
       <h1>
         <input name="name" type="text" value="{{actor.name}}" placeholder="{{localize 'ROLENROLL.Actor.Name'}}">
       </h1>
+      <div class="profile-grid">
+        <label>
+          <span>{{localize "ROLENROLL.Profile.Level"}}</span>
+          <input type="number" name="system.profile.level" value="{{system.profile.level}}" min="0">
+        </label>
+        <label>
+          <span>{{localize "ROLENROLL.Profile.Exp"}}</span>
+          <span class="resource-inputs">
+            <input type="number" name="system.profile.exp" value="{{system.profile.exp}}" min="0">
+            <span>/</span>
+            <input type="number" name="system.profile.expMax" value="{{system.profile.expMax}}" min="0">
+          </span>
+        </label>
+      </div>
       <div class="resource-grid">
         <label>
           <span>{{localize "ROLENROLL.Resource.Health"}}</span>
@@ -25,6 +39,14 @@
         <label>
           <span>{{localize "ROLENROLL.Resource.Defense"}}</span>
           <input type="number" name="system.defense" value="{{system.defense}}">
+        </label>
+        <label>
+          <span>{{localize "ROLENROLL.Resource.Mental"}}</span>
+          <span class="resource-inputs">
+            <input type="number" name="system.resources.mental.value" value="{{system.resources.mental.value}}" min="0">
+            <span>/</span>
+            <input type="number" name="system.resources.mental.max" value="{{system.resources.mental.max}}" min="1" max="18">
+          </span>
         </label>
       </div>
     </div>
@@ -190,10 +212,6 @@
             <label class="stat-bonus">
               <input type="checkbox" name="system.extraSkills.{{slot}}.bonus" {{#if bonus}}checked{{/if}}>
               <span>{{localize "ROLENROLL.Roll.AttributeSucceed"}}</span>
-            </label>
-            <label class="stat-bonus">
-              <input type="checkbox" name="system.extraSkills.{{slot}}.profession" {{#if profession}}checked{{/if}}>
-              <span>{{localize "ROLENROLL.ExtraSkill.Profession"}}</span>
             </label>
             <label class="extra-skill-details">
               <span>{{localize "ROLENROLL.ExtraSkill.Details"}}</span>
