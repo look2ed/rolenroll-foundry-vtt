@@ -63,43 +63,6 @@
 
   <section class="sheet-body">
     <div class="tab" data-group="primary" data-tab="attributes">
-      <section class="roll-controls">
-        <div class="special-dice-builder">
-          <div class="special-dice-builder-header">
-            <span>{{rolenrollLocalize "ROLENROLL.Roll.SpecialDice"}}</span>
-            <button type="button" data-add-special-die>{{rolenrollLocalize "ROLENROLL.Roll.AddSpecialDie"}}</button>
-          </div>
-          <input type="hidden" name="system.roll.specialDice" value="{{system.roll.specialDice}}">
-          <div class="special-dice-list">
-            {{#each specialDice}}
-              <div class="special-die-card">
-                <div class="special-die-card-faces" aria-label="{{rolenrollLocalize 'ROLENROLL.Roll.SpecialDie'}}">
-                  {{#each faces}}
-                    <button
-                      type="button"
-                      class="special-die-face {{className}}"
-                      data-special-die-face="{{../dieIndex}}:{{faceIndex}}"
-                      {{#if locked}}disabled{{/if}}
-                    >{{display}}</button>
-                  {{/each}}
-                </div>
-                <button type="button" data-remove-special-die="{{dieIndex}}">{{rolenrollLocalize "ROLENROLL.Action.Remove"}}</button>
-              </div>
-            {{else}}
-              <p class="special-dice-empty">{{rolenrollLocalize "ROLENROLL.Roll.NoSpecialDice"}}</p>
-            {{/each}}
-          </div>
-        </div>
-        <label>
-          <span>{{rolenrollLocalize "ROLENROLL.Roll.Succeed"}}</span>
-          <input type="number" name="system.roll.success" value="{{system.roll.success}}" min="0">
-        </label>
-        <label>
-          <span>{{rolenrollLocalize "ROLENROLL.Roll.Penalty"}}</span>
-          <input type="number" name="system.roll.penalty" value="{{system.roll.penalty}}" min="0">
-        </label>
-      </section>
-
       <div class="attribute-grid">
         {{#each attributes}}
           <div class="attribute-row">

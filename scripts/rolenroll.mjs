@@ -572,14 +572,29 @@ function getSpecialFaceClass(face) {
 function buildSpecialDicePreviewHtml(specialDice) {
   const specialDiceFaces = parseSpecialDiceFaces(specialDice);
   return specialDiceFaces.length
-    ? specialDiceFaces.map((faces) => `
+    ? specialDiceFaces.map((faces, dieIndex) => `
       <div class="special-die-card">
         <div class="special-die-card-faces">
-          ${faces.map((face, index) => `<span class="special-die-face ${getSpecialFaceClass(face)}">${getSpecialFaceDisplay(face, index)}</span>`).join("")}
+          ${faces.map((face, faceIndex) => `
+            <button
+              type="button"
+              class="special-die-face ${getSpecialFaceClass(face)}"
+              data-roll-special-die-face="${dieIndex}:${faceIndex}"
+              ${faceIndex === 0 || faceIndex === 5 ? "disabled" : ""}
+            >${getSpecialFaceDisplay(face, faceIndex)}</button>
+          `).join("")}
         </div>
+        <button type="button" data-roll-remove-special-die="${dieIndex}">${localize("ROLENROLL.Action.Remove")}</button>
       </div>
     `).join("")
     : `<p class="special-dice-empty">${localize("ROLENROLL.Roll.NoSpecialDice")}</p>`;
+}
+
+function renderRollSpecialDiceBuilder(form, specialDiceValue) {
+  const input = form.querySelector('[name="specialDice"]');
+  const list = form.querySelector("[data-roll-special-dice-list]");
+  if (input) input.value = specialDiceValue;
+  if (list) list.innerHTML = buildSpecialDicePreviewHtml(specialDiceValue);
 }
 
 function getAttributeValue(actor, codeOrKey) {
@@ -919,16 +934,6 @@ class RolenrollActorSheet extends ActorSheet {
   getData(options = {}) {
     const context = super.getData(options);
     context.system = this.actor.system;
-    const specialDiceFaces = parseSpecialDiceFaces(this.actor.system.roll?.specialDice);
-    context.specialDice = specialDiceFaces.map((faces, dieIndex) => ({
-      dieIndex,
-      faces: faces.map((face, faceIndex) => ({
-        faceIndex,
-        display: getSpecialFaceDisplay(face, faceIndex),
-        className: getSpecialFaceClass(face),
-        locked: faceIndex === 0 || faceIndex === 5
-      }))
-    }));
     context.attributes = ATTRIBUTE_KEYS.map((key) => {
       const value = Number(this.actor.system.attributes?.[key] ?? 0);
       return {
@@ -1064,9 +1069,6 @@ class RolenrollActorSheet extends ActorSheet {
     html.find("[data-add-extra-skill]").on("click", this.#onAddExtraSkill.bind(this));
     html.find("[data-remove-extra-skill]").on("click", this.#onRemoveExtraSkill.bind(this));
     html.find("[data-extra-skill-dependency]").on("change", this.#onExtraSkillDependency.bind(this));
-    html.find("[data-add-special-die]").on("click", this.#onAddSpecialDie.bind(this));
-    html.find("[data-remove-special-die]").on("click", this.#onRemoveSpecialDie.bind(this));
-    html.find("[data-special-die-face]").on("click", this.#onSpecialDieFace.bind(this));
     html.find("[data-add-equipment]").on("click", this.#onAddEquipment.bind(this));
     html.find("[data-remove-equipment]").on("click", this.#onRemoveEquipment.bind(this));
     html.find("[data-add-inventory-item]").on("click", this.#onAddInventoryItem.bind(this));
@@ -1162,41 +1164,6 @@ class RolenrollActorSheet extends ActorSheet {
     });
   }
 
-  async #onAddSpecialDie(event) {
-    event.preventDefault();
-
-    const diceFaces = parseSpecialDiceFaces(this.actor.system.roll?.specialDice);
-    diceFaces.push(["1", "", "", "", "", "R"]);
-    await this.actor.update({ "system.roll.specialDice": buildSpecialDiceValue(diceFaces) });
-  }
-
-  async #onRemoveSpecialDie(event) {
-    event.preventDefault();
-
-    const dieIndex = Number(event.currentTarget.dataset.removeSpecialDie ?? -1);
-    const diceFaces = parseSpecialDiceFaces(this.actor.system.roll?.specialDice);
-    if (!Number.isInteger(dieIndex) || dieIndex < 0 || dieIndex >= diceFaces.length) return;
-
-    diceFaces.splice(dieIndex, 1);
-    await this.actor.update({ "system.roll.specialDice": buildSpecialDiceValue(diceFaces) });
-  }
-
-  async #onSpecialDieFace(event) {
-    event.preventDefault();
-
-    const [dieIndexText, faceIndexText] = String(event.currentTarget.dataset.specialDieFace || "").split(":");
-    const dieIndex = Number(dieIndexText);
-    const faceIndex = Number(faceIndexText);
-    if (!Number.isInteger(dieIndex) || !Number.isInteger(faceIndex) || faceIndex < 1 || faceIndex > 4) return;
-
-    const diceFaces = parseSpecialDiceFaces(this.actor.system.roll?.specialDice);
-    if (!diceFaces[dieIndex]) return;
-
-    const current = diceFaces[dieIndex][faceIndex] || "";
-    diceFaces[dieIndex][faceIndex] = current === "" ? "+" : current === "+" ? "-" : "";
-    await this.actor.update({ "system.roll.specialDice": buildSpecialDiceValue(diceFaces) });
-  }
-
   async #onAddEquipment(event) {
     event.preventDefault();
 
@@ -1259,16 +1226,18 @@ class RolenrollActorSheet extends ActorSheet {
     const name = item.name?.trim() || localize("ROLENROLL.Inventory.UntitledItem");
     const details = item.details?.trim();
     const quantity = Number(item.quantity ?? 0) || 0;
+    const nextQuantity = Math.max(0, quantity - 1);
     const content = `
       <div class="role-roll-chat">
         <div class="role-roll-header"><strong>${escapeHtml(localize("ROLENROLL.Inventory.UsedItem", { item: name }))}</strong></div>
         <dl class="role-roll-summary">
-          <div><dt>${localize("ROLENROLL.Inventory.Quantity")}</dt><dd>${quantity}</dd></div>
+          <div><dt>${localize("ROLENROLL.Inventory.Quantity")}</dt><dd>${quantity} -> ${nextQuantity}</dd></div>
         </dl>
         ${details ? `<p>${escapeHtml(details).replace(/\n/g, "<br>")}</p>` : ""}
       </div>
     `;
 
+    await this.actor.update({ [`system.inventoryItems.${slot}.quantity`]: nextQuantity });
     await ChatMessage.create({
       speaker: ChatMessage.getSpeaker({ actor: this.actor }),
       content
@@ -1388,6 +1357,7 @@ class RolenrollActorSheet extends ActorSheet {
 
   #openRollDialog({ label, totalDice, specialDice = "", success = 0, penalty = 0 }) {
     void this.close();
+    let specialDiceValue = specialDice;
 
     const content = `
       <form class="rolenroll-roll-dialog">
@@ -1396,9 +1366,12 @@ class RolenrollActorSheet extends ActorSheet {
           <input type="number" name="totalDice" min="1" max="50" value="${totalDice}">
         </div>
         <div class="form-group special-dice-builder">
-          <label>${localize("ROLENROLL.Roll.SpecialDice")}</label>
+          <div class="special-dice-builder-header">
+            <span>${localize("ROLENROLL.Roll.SpecialDice")}</span>
+            <button type="button" data-roll-add-special-die>${localize("ROLENROLL.Roll.AddSpecialDie")}</button>
+          </div>
           <input type="hidden" name="specialDice" value="${escapeHtml(specialDice)}">
-          <div class="special-dice-list">${buildSpecialDicePreviewHtml(specialDice)}</div>
+          <div class="special-dice-list" data-roll-special-dice-list>${buildSpecialDicePreviewHtml(specialDice)}</div>
         </div>
         <div class="form-group">
           <label>${localize("ROLENROLL.Roll.Succeed")}</label>
@@ -1423,7 +1396,54 @@ class RolenrollActorSheet extends ActorSheet {
           label: localize("Cancel")
         }
       },
-      default: "roll"
+      default: "roll",
+      render: (html) => {
+        const form = html[0]?.querySelector("form");
+        if (!form) return;
+
+        form.addEventListener("click", (event) => {
+          const addButton = event.target.closest("[data-roll-add-special-die]");
+          const removeButton = event.target.closest("[data-roll-remove-special-die]");
+          const faceButton = event.target.closest("[data-roll-special-die-face]");
+
+          if (addButton) {
+            event.preventDefault();
+            const diceFaces = parseSpecialDiceFaces(specialDiceValue);
+            diceFaces.push(["1", "", "", "", "", "R"]);
+            specialDiceValue = buildSpecialDiceValue(diceFaces);
+            renderRollSpecialDiceBuilder(form, specialDiceValue);
+            return;
+          }
+
+          if (removeButton) {
+            event.preventDefault();
+            const dieIndex = Number(removeButton.dataset.rollRemoveSpecialDie ?? -1);
+            const diceFaces = parseSpecialDiceFaces(specialDiceValue);
+            if (!Number.isInteger(dieIndex) || dieIndex < 0 || dieIndex >= diceFaces.length) return;
+
+            diceFaces.splice(dieIndex, 1);
+            specialDiceValue = buildSpecialDiceValue(diceFaces);
+            renderRollSpecialDiceBuilder(form, specialDiceValue);
+            return;
+          }
+
+          if (faceButton) {
+            event.preventDefault();
+            const [dieIndexText, faceIndexText] = String(faceButton.dataset.rollSpecialDieFace || "").split(":");
+            const dieIndex = Number(dieIndexText);
+            const faceIndex = Number(faceIndexText);
+            if (!Number.isInteger(dieIndex) || !Number.isInteger(faceIndex) || faceIndex < 1 || faceIndex > 4) return;
+
+            const diceFaces = parseSpecialDiceFaces(specialDiceValue);
+            if (!diceFaces[dieIndex]) return;
+
+            const current = diceFaces[dieIndex][faceIndex] || "";
+            diceFaces[dieIndex][faceIndex] = current === "" ? "+" : current === "+" ? "-" : "";
+            specialDiceValue = buildSpecialDiceValue(diceFaces);
+            renderRollSpecialDiceBuilder(form, specialDiceValue);
+          }
+        });
+      }
     }).render(true);
   }
 
@@ -1441,6 +1461,7 @@ class RolenrollActorSheet extends ActorSheet {
     }
 
     await performPoolRoll({ label, totalDice, specialDice, success, penalty, actor: this.actor });
+    await this.actor.update({ "system.roll.specialDice": specialDice });
   }
 }
 
