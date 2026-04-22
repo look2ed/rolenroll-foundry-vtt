@@ -41,10 +41,32 @@
   <section class="sheet-body">
     <div class="tab" data-group="primary" data-tab="attributes">
       <section class="roll-controls">
-        <label>
-          <span>{{localize "ROLENROLL.Roll.SpecialDice"}}</span>
-          <input type="text" name="system.roll.specialDice" value="{{system.roll.specialDice}}" placeholder="a1, n2">
-        </label>
+        <div class="special-dice-builder">
+          <div class="special-dice-builder-header">
+            <span>{{localize "ROLENROLL.Roll.SpecialDice"}}</span>
+            <button type="button" data-add-special-die>{{localize "ROLENROLL.Roll.AddSpecialDie"}}</button>
+          </div>
+          <input type="hidden" name="system.roll.specialDice" value="{{system.roll.specialDice}}">
+          <div class="special-dice-list">
+            {{#each specialDice}}
+              <div class="special-die-card">
+                <div class="special-die-card-faces" aria-label="{{localize 'ROLENROLL.Roll.SpecialDie'}}">
+                  {{#each faces}}
+                    <button
+                      type="button"
+                      class="special-die-face {{className}}"
+                      data-special-die-face="{{../dieIndex}}:{{faceIndex}}"
+                      {{#if locked}}disabled{{/if}}
+                    >{{display}}</button>
+                  {{/each}}
+                </div>
+                <button type="button" data-remove-special-die="{{dieIndex}}">{{localize "ROLENROLL.Action.Remove"}}</button>
+              </div>
+            {{else}}
+              <p class="special-dice-empty">{{localize "ROLENROLL.Roll.NoSpecialDice"}}</p>
+            {{/each}}
+          </div>
+        </div>
         <label>
           <span>{{localize "ROLENROLL.Roll.Succeed"}}</span>
           <input type="number" name="system.roll.success" value="{{system.roll.success}}" min="0">

@@ -99,13 +99,100 @@
 
 .rolenroll .roll-controls {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) 100px 100px;
+  grid-template-columns: minmax(260px, 1fr) 100px 100px;
   gap: 10px;
   margin-bottom: 12px;
   padding: 10px;
   border: 1px solid #d6d1c5;
   border-radius: 8px;
   background: #f8f3e7;
+}
+
+.rolenroll .special-dice-builder {
+  display: grid;
+  gap: 8px;
+}
+
+.rolenroll .special-dice-builder-header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rolenroll .special-dice-builder-header span,
+.rolenroll .special-dice-builder > label {
+  color: #173a3f;
+  font-weight: 900;
+}
+
+.rolenroll .special-dice-list {
+  display: grid;
+  gap: 6px;
+}
+
+.rolenroll .special-dice-empty {
+  margin: 0;
+  padding: 8px;
+  border: 1px dashed #d6d1c5;
+  border-radius: 6px;
+  color: #5f5b50;
+  font-weight: 800;
+}
+
+.rolenroll .special-die-card {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px;
+  border: 1px solid #d6d1c5;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.rolenroll .special-die-card-faces {
+  display: flex;
+  gap: 4px;
+  flex-wrap: nowrap;
+}
+
+.rolenroll .special-die-face {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #a9a291;
+  border-radius: 6px;
+  background: #fffdf7;
+  color: #171717;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.rolenroll .special-die-face:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.rolenroll .special-die-face.is-point,
+.rolenroll .special-die-face.is-reroll {
+  background: #dcebea;
+  border-color: #23545a;
+  color: #173a3f;
+}
+
+.rolenroll .special-die-face.is-plus {
+  background: #e6f3df;
+  border-color: #598345;
+  color: #315322;
+}
+
+.rolenroll .special-die-face.is-minus {
+  background: #f5dfdc;
+  border-color: #9a5047;
+  color: #71352e;
 }
 
 .rolenroll .stat-dots {

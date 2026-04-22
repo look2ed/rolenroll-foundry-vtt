@@ -99,6 +99,17 @@ function buildDieFaces(config = {}) {
   const kind = config.kind ?? "normal";
   const faces = ["1", "", "", "", "", "R"];
 
+  if (kind === "custom" && Array.isArray(config.faces)) {
+    const customFaces = config.faces.slice(0, 6).map((face) => {
+      if (face === "1" || face === "R" || face === "+" || face === "-") return face;
+      return "";
+    });
+    while (customFaces.length < 6) customFaces.push("");
+    customFaces[0] = "1";
+    customFaces[5] = "R";
+    return customFaces;
+  }
+
   if (kind === "adv") {
     const plusCount = clamp(config.plusCount ?? 1, 1, 4);
     for (let i = 0; i < plusCount; i++) faces[1 + i] = "+";
@@ -140,13 +151,30 @@ function scoreFaces(faces) {
   return { basePoints, plusCount, minusCount, rerollCount, total };
 }
 
-function rollD6() {
-  return Math.floor(Math.random() * 6) + 1;
-}
-
 function parseSpecialDice(specialDice) {
   const configs = [];
-  const tokens = String(specialDice || "")
+  const trimmed = String(specialDice || "").trim();
+  if (!trimmed) return configs;
+
+  if (trimmed.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (!Array.isArray(parsed)) throw new Error("Expected an array");
+
+      return parsed.map((entry) => {
+        if (entry?.kind === "custom" && Array.isArray(entry.faces)) {
+          return { kind: "custom", faces: buildDieFaces(entry) };
+        }
+        if (entry?.kind === "adv") return { kind: "adv", plusCount: entry.plusCount };
+        if (entry?.kind === "neg") return { kind: "neg", minusCount: entry.minusCount };
+        return { kind: "normal" };
+      });
+    } catch (error) {
+      throw new Error(game.i18n.localize("ROLENROLL.Roll.InvalidSpecialDiceJson"));
+    }
+  }
+
+  const tokens = trimmed
     .split(/[, ]+/)
     .map((token) => token.trim())
     .filter(Boolean);
@@ -170,7 +198,45 @@ function parseSpecialDice(specialDice) {
   return configs;
 }
 
-function rollRolenrollPool(dice) {
+async function showDiceOnBoard(roll, speaker) {
+  if (game.dice3d?.showForRoll) {
+    await game.dice3d.showForRoll(roll, game.user, true, null, false);
+    return;
+  }
+
+  await roll.toMessage({
+    speaker,
+    flavor: game.i18n.localize("ROLENROLL.Roll.BoardDice"),
+    flags: {
+      core: {
+        canPopout: false
+      }
+    }
+  });
+}
+
+function getRollValues(roll) {
+  return roll.dice.flatMap((die) => die.results.map((result) => result.result));
+}
+
+function confirmReroll(count) {
+  return new Promise((resolve) => {
+    new Dialog({
+      title: game.i18n.localize("ROLENROLL.Roll.RerollTitle"),
+      content: `<p>${game.i18n.format("ROLENROLL.Roll.RerollPrompt", { count })}</p>`,
+      buttons: {
+        reroll: {
+          label: game.i18n.localize("ROLENROLL.Roll.RerollButton"),
+          callback: () => resolve(true)
+        }
+      },
+      close: () => resolve(true),
+      default: "reroll"
+    }).render(true);
+  });
+}
+
+async function rollRolenrollPool(dice, speaker) {
   const rounds = [];
   let current = dice.map((config) => ({ config }));
   let safety = 0;
@@ -181,15 +247,21 @@ function rollRolenrollPool(dice) {
     const thisRound = [];
     const next = [];
 
-    for (const { config } of current) {
-      const roll = rollD6();
-      const face = faceForRoll(config, roll);
-      thisRound.push({ config, roll, face });
+    const roll = await new Roll(`${current.length}d6`).evaluate();
+    await showDiceOnBoard(roll, speaker);
+    const values = getRollValues(roll);
+
+    for (const [index, { config }] of current.entries()) {
+      const value = values[index] ?? 1;
+      const face = faceForRoll(config, value);
+      thisRound.push({ config, roll: value, face });
 
       if (face === "R") next.push({ config: { ...config } });
     }
 
     rounds.push(thisRound);
+
+    if (next.length > 0) await confirmReroll(next.length);
     current = next;
   }
 
@@ -258,6 +330,44 @@ function buildDots(value, max = 6) {
     value: index + 1,
     active: index < value
   }));
+}
+
+function parseSpecialDiceFaces(value) {
+  const trimmed = String(value || "").trim();
+  if (!trimmed || !trimmed.startsWith("[")) return [];
+
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (!Array.isArray(parsed)) return [];
+
+    return parsed
+      .map((entry) => buildDieFaces(entry))
+      .filter((faces) => faces.length === 6);
+  } catch (error) {
+    return [];
+  }
+}
+
+function buildSpecialDiceValue(diceFaces) {
+  return diceFaces.length
+    ? JSON.stringify(diceFaces.map((faces) => ({ kind: "custom", faces: buildDieFaces({ kind: "custom", faces }) })))
+    : "";
+}
+
+function getSpecialFaceDisplay(face, index) {
+  if (index === 0 || face === "1") return ".";
+  if (face === "R") return "R";
+  if (face === "+") return "+";
+  if (face === "-") return "-";
+  return "";
+}
+
+function getSpecialFaceClass(face) {
+  if (face === "1") return "is-point";
+  if (face === "R") return "is-reroll";
+  if (face === "+") return "is-plus";
+  if (face === "-") return "is-minus";
+  return "is-blank";
 }
 
 function getAttributeValue(actor, codeOrKey) {
@@ -431,6 +541,16 @@ class RolenrollActorSheet extends ActorSheet {
   getData(options = {}) {
     const context = super.getData(options);
     context.system = this.actor.system;
+    const specialDiceFaces = parseSpecialDiceFaces(this.actor.system.roll?.specialDice);
+    context.specialDice = specialDiceFaces.map((faces, dieIndex) => ({
+      dieIndex,
+      faces: faces.map((face, faceIndex) => ({
+        faceIndex,
+        display: getSpecialFaceDisplay(face, faceIndex),
+        className: getSpecialFaceClass(face),
+        locked: faceIndex === 0 || faceIndex === 5
+      }))
+    }));
     context.attributes = ATTRIBUTE_KEYS.map((key) => {
       const value = Number(this.actor.system.attributes?.[key] ?? 0);
       return {
@@ -503,6 +623,9 @@ class RolenrollActorSheet extends ActorSheet {
     html.find("[data-add-extra-skill]").on("click", this.#onAddExtraSkill.bind(this));
     html.find("[data-remove-extra-skill]").on("click", this.#onRemoveExtraSkill.bind(this));
     html.find("[data-extra-skill-dependency]").on("change", this.#onExtraSkillDependency.bind(this));
+    html.find("[data-add-special-die]").on("click", this.#onAddSpecialDie.bind(this));
+    html.find("[data-remove-special-die]").on("click", this.#onRemoveSpecialDie.bind(this));
+    html.find("[data-special-die-face]").on("click", this.#onSpecialDieFace.bind(this));
   }
 
   async #onAttributeDot(event) {
@@ -592,6 +715,41 @@ class RolenrollActorSheet extends ActorSheet {
     });
   }
 
+  async #onAddSpecialDie(event) {
+    event.preventDefault();
+
+    const diceFaces = parseSpecialDiceFaces(this.actor.system.roll?.specialDice);
+    diceFaces.push(["1", "", "", "", "", "R"]);
+    await this.actor.update({ "system.roll.specialDice": buildSpecialDiceValue(diceFaces) });
+  }
+
+  async #onRemoveSpecialDie(event) {
+    event.preventDefault();
+
+    const dieIndex = Number(event.currentTarget.dataset.removeSpecialDie ?? -1);
+    const diceFaces = parseSpecialDiceFaces(this.actor.system.roll?.specialDice);
+    if (!Number.isInteger(dieIndex) || dieIndex < 0 || dieIndex >= diceFaces.length) return;
+
+    diceFaces.splice(dieIndex, 1);
+    await this.actor.update({ "system.roll.specialDice": buildSpecialDiceValue(diceFaces) });
+  }
+
+  async #onSpecialDieFace(event) {
+    event.preventDefault();
+
+    const [dieIndexText, faceIndexText] = String(event.currentTarget.dataset.specialDieFace || "").split(":");
+    const dieIndex = Number(dieIndexText);
+    const faceIndex = Number(faceIndexText);
+    if (!Number.isInteger(dieIndex) || !Number.isInteger(faceIndex) || faceIndex < 1 || faceIndex > 4) return;
+
+    const diceFaces = parseSpecialDiceFaces(this.actor.system.roll?.specialDice);
+    if (!diceFaces[dieIndex]) return;
+
+    const current = diceFaces[dieIndex][faceIndex] || "";
+    diceFaces[dieIndex][faceIndex] = current === "" ? "+" : current === "+" ? "-" : "";
+    await this.actor.update({ "system.roll.specialDice": buildSpecialDiceValue(diceFaces) });
+  }
+
   async #onAttributeRoll(event) {
     event.preventDefault();
 
@@ -670,16 +828,26 @@ class RolenrollActorSheet extends ActorSheet {
   }
 
   #openRollDialog({ label, totalDice, specialDice = "", success = 0, penalty = 0 }) {
+    const specialDiceFaces = parseSpecialDiceFaces(specialDice);
+    const specialDiceHtml = specialDiceFaces.length
+      ? specialDiceFaces.map((faces) => `
+        <div class="special-die-card">
+          <div class="special-die-card-faces">
+            ${faces.map((face, index) => `<span class="special-die-face ${getSpecialFaceClass(face)}">${getSpecialFaceDisplay(face, index)}</span>`).join("")}
+          </div>
+        </div>
+      `).join("")
+      : `<p class="special-dice-empty">${game.i18n.localize("ROLENROLL.Roll.NoSpecialDice")}</p>`;
     const content = `
       <form class="rolenroll-roll-dialog">
         <div class="form-group">
           <label>${game.i18n.localize("ROLENROLL.Roll.TotalDice")}</label>
           <input type="number" name="totalDice" min="1" max="50" value="${totalDice}">
         </div>
-        <div class="form-group">
+        <div class="form-group special-dice-builder">
           <label>${game.i18n.localize("ROLENROLL.Roll.SpecialDice")}</label>
-          <input type="text" name="specialDice" value="${escapeHtml(specialDice)}" placeholder="a1, n2">
-          <p class="notes">${game.i18n.localize("ROLENROLL.Roll.SpecialDiceHint")}</p>
+          <input type="hidden" name="specialDice" value="${escapeHtml(specialDice)}">
+          <div class="special-dice-list">${specialDiceHtml}</div>
         </div>
         <div class="form-group">
           <label>${game.i18n.localize("ROLENROLL.Roll.Succeed")}</label>
@@ -742,11 +910,12 @@ class RolenrollActorSheet extends ActorSheet {
       return;
     }
 
-    const result = rollRolenrollPool(dice);
+    const speaker = ChatMessage.getSpeaker({ actor: this.actor });
+    const result = await rollRolenrollPool(dice, speaker);
     const content = buildRollMessage({ label, totalDice, specialDice, success, penalty, result });
 
     await ChatMessage.create({
-      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      speaker,
       content
     });
   }
