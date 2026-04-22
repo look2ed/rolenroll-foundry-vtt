@@ -369,6 +369,63 @@
   grid-column: 1 / -1;
 }
 
+.rolenroll .inventory-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.rolenroll .inventory-panel {
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.rolenroll .inventory-panel-header {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.rolenroll .inventory-panel-header h2 {
+  margin: 0;
+  color: #173a3f;
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.rolenroll .inventory-entry-list {
+  display: grid;
+  gap: 10px;
+}
+
+.rolenroll .inventory-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 120px;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid #d6d1c5;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.rolenroll .inventory-entry-name,
+.rolenroll .inventory-entry-details,
+.rolenroll .inventory-entry-actions {
+  grid-column: 1 / -1;
+}
+
+.rolenroll .inventory-entry-details textarea {
+  min-height: 76px;
+}
+
+.rolenroll .inventory-entry-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .rolenroll .empty-list {
   margin: 0;
   padding: 12px;
@@ -404,7 +461,9 @@
   .rolenroll .skill-grid,
   .rolenroll .extra-skill-grid,
   .rolenroll .extra-skill-row,
-  .rolenroll .dependency-grid {
+  .rolenroll .dependency-grid,
+  .rolenroll .inventory-layout,
+  .rolenroll .inventory-entry {
     grid-template-columns: 1fr;
   }
 }

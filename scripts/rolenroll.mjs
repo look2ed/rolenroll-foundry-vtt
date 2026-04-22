@@ -88,6 +88,31 @@ const EXTRA_SKILL_SLOTS = [
   "eleven",
   "twelve"
 ];
+const EQUIPMENT_ENTRY_SLOTS = [
+  "one",
+  "two",
+  "three",
+  "four",
+  "five",
+  "six",
+  "seven",
+  "eight"
+];
+const INVENTORY_ITEM_SLOTS = [
+  "one",
+  "two",
+  "three",
+  "four",
+  "five",
+  "six",
+  "seven",
+  "eight",
+  "nine",
+  "ten",
+  "eleven",
+  "twelve"
+];
+const EQUIPMENT_LOCATIONS = ["left", "right", "wearing"];
 
 function clamp(value, min, max) {
   const number = Number(value ?? 0);
@@ -426,6 +451,10 @@ function buildDependencyValue(ids) {
   return Array.from(new Set(ids.filter(Boolean))).join(",");
 }
 
+function isEntryActive(entry) {
+  return Boolean(entry?.active || entry?.name || entry?.details);
+}
+
 function getDependencyRollParts(actor, dependencyIds) {
   const successKeys = new Set();
   let dice = 0;
@@ -533,6 +562,28 @@ class RolenrollCharacterData extends foundry.abstract.TypeDataModel {
         specialDice: new fields.StringField({ required: true, initial: "" })
       }),
       equipment: new fields.StringField({ required: true, initial: "" }),
+      equipmentEntries: new fields.SchemaField(Object.fromEntries(
+        EQUIPMENT_ENTRY_SLOTS.map((slot) => [
+          slot,
+          new fields.SchemaField({
+            active: new fields.BooleanField({ required: true, initial: false }),
+            name: new fields.StringField({ required: true, initial: "" }),
+            location: new fields.StringField({ required: true, initial: "wearing", choices: EQUIPMENT_LOCATIONS }),
+            details: new fields.StringField({ required: true, initial: "" })
+          })
+        ])
+      )),
+      inventoryItems: new fields.SchemaField(Object.fromEntries(
+        INVENTORY_ITEM_SLOTS.map((slot) => [
+          slot,
+          new fields.SchemaField({
+            active: new fields.BooleanField({ required: true, initial: false }),
+            name: new fields.StringField({ required: true, initial: "" }),
+            quantity: new fields.NumberField({ required: true, integer: true, initial: 1, min: 0 }),
+            details: new fields.StringField({ required: true, initial: "" })
+          })
+        ])
+      )),
       statuses: new fields.StringField({ required: true, initial: "" }),
       notes: new fields.HTMLField({ required: true, initial: "" })
     };
@@ -717,6 +768,34 @@ class RolenrollActorSheet extends ActorSheet {
       };
     }).filter((extraSkill) => extraSkill.active);
     context.canAddExtraSkill = context.extraSkillSlots.length < EXTRA_SKILL_SLOTS.length;
+    context.equipmentSlots = EQUIPMENT_ENTRY_SLOTS.map((slot) => {
+      const entry = this.actor.system.equipmentEntries?.[slot] ?? {};
+      const location = EQUIPMENT_LOCATIONS.includes(entry.location) ? entry.location : "wearing";
+      return {
+        slot,
+        active: isEntryActive(entry),
+        name: entry.name ?? "",
+        location,
+        details: entry.details ?? "",
+        locationOptions: EQUIPMENT_LOCATIONS.map((key) => ({
+          key,
+          label: game.i18n.localize(`ROLENROLL.Inventory.Location.${key}`),
+          selected: key === location
+        }))
+      };
+    }).filter((entry) => entry.active);
+    context.canAddEquipment = context.equipmentSlots.length < EQUIPMENT_ENTRY_SLOTS.length;
+    context.inventoryItems = INVENTORY_ITEM_SLOTS.map((slot) => {
+      const item = this.actor.system.inventoryItems?.[slot] ?? {};
+      return {
+        slot,
+        active: isEntryActive(item),
+        name: item.name ?? "",
+        quantity: Number(item.quantity ?? 1) || 0,
+        details: item.details ?? ""
+      };
+    }).filter((item) => item.active);
+    context.canAddInventoryItem = context.inventoryItems.length < INVENTORY_ITEM_SLOTS.length;
     return context;
   }
 
@@ -735,6 +814,11 @@ class RolenrollActorSheet extends ActorSheet {
     html.find("[data-add-special-die]").on("click", this.#onAddSpecialDie.bind(this));
     html.find("[data-remove-special-die]").on("click", this.#onRemoveSpecialDie.bind(this));
     html.find("[data-special-die-face]").on("click", this.#onSpecialDieFace.bind(this));
+    html.find("[data-add-equipment]").on("click", this.#onAddEquipment.bind(this));
+    html.find("[data-remove-equipment]").on("click", this.#onRemoveEquipment.bind(this));
+    html.find("[data-add-inventory-item]").on("click", this.#onAddInventoryItem.bind(this));
+    html.find("[data-remove-inventory-item]").on("click", this.#onRemoveInventoryItem.bind(this));
+    html.find("[data-use-inventory-item]").on("click", this.#onUseInventoryItem.bind(this));
   }
 
   async #onAttributeDot(event) {
@@ -856,6 +940,84 @@ class RolenrollActorSheet extends ActorSheet {
     const current = diceFaces[dieIndex][faceIndex] || "";
     diceFaces[dieIndex][faceIndex] = current === "" ? "+" : current === "+" ? "-" : "";
     await this.actor.update({ "system.roll.specialDice": buildSpecialDiceValue(diceFaces) });
+  }
+
+  async #onAddEquipment(event) {
+    event.preventDefault();
+
+    const slot = EQUIPMENT_ENTRY_SLOTS.find((key) => !isEntryActive(this.actor.system.equipmentEntries?.[key]));
+    if (!slot) {
+      ui.notifications.warn(game.i18n.localize("ROLENROLL.Inventory.NoEquipmentSlots"));
+      return;
+    }
+
+    await this.actor.update({ [`system.equipmentEntries.${slot}.active`]: true });
+  }
+
+  async #onRemoveEquipment(event) {
+    event.preventDefault();
+
+    const slot = event.currentTarget.dataset.removeEquipment;
+    if (!EQUIPMENT_ENTRY_SLOTS.includes(slot)) return;
+
+    await this.actor.update({
+      [`system.equipmentEntries.${slot}.active`]: false,
+      [`system.equipmentEntries.${slot}.name`]: "",
+      [`system.equipmentEntries.${slot}.location`]: "wearing",
+      [`system.equipmentEntries.${slot}.details`]: ""
+    });
+  }
+
+  async #onAddInventoryItem(event) {
+    event.preventDefault();
+
+    const slot = INVENTORY_ITEM_SLOTS.find((key) => !isEntryActive(this.actor.system.inventoryItems?.[key]));
+    if (!slot) {
+      ui.notifications.warn(game.i18n.localize("ROLENROLL.Inventory.NoItemSlots"));
+      return;
+    }
+
+    await this.actor.update({ [`system.inventoryItems.${slot}.active`]: true });
+  }
+
+  async #onRemoveInventoryItem(event) {
+    event.preventDefault();
+
+    const slot = event.currentTarget.dataset.removeInventoryItem;
+    if (!INVENTORY_ITEM_SLOTS.includes(slot)) return;
+
+    await this.actor.update({
+      [`system.inventoryItems.${slot}.active`]: false,
+      [`system.inventoryItems.${slot}.name`]: "",
+      [`system.inventoryItems.${slot}.quantity`]: 1,
+      [`system.inventoryItems.${slot}.details`]: ""
+    });
+  }
+
+  async #onUseInventoryItem(event) {
+    event.preventDefault();
+
+    const slot = event.currentTarget.dataset.useInventoryItem;
+    const item = this.actor.system.inventoryItems?.[slot];
+    if (!INVENTORY_ITEM_SLOTS.includes(slot) || !item) return;
+
+    const name = item.name?.trim() || game.i18n.localize("ROLENROLL.Inventory.UntitledItem");
+    const details = item.details?.trim();
+    const quantity = Number(item.quantity ?? 0) || 0;
+    const content = `
+      <div class="role-roll-chat">
+        <div class="role-roll-header"><strong>${escapeHtml(game.i18n.format("ROLENROLL.Inventory.UsedItem", { item: name }))}</strong></div>
+        <dl class="role-roll-summary">
+          <div><dt>${game.i18n.localize("ROLENROLL.Inventory.Quantity")}</dt><dd>${quantity}</dd></div>
+        </dl>
+        ${details ? `<p>${escapeHtml(details).replace(/\n/g, "<br>")}</p>` : ""}
+      </div>
+    `;
+
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content
+    });
   }
 
   async #onAttributeRoll(event) {

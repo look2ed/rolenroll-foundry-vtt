@@ -56,7 +56,7 @@
     <a class="item" data-tab="attributes">{{localize "ROLENROLL.Tab.Attributes"}}</a>
     <a class="item" data-tab="general">{{localize "ROLENROLL.Tab.GeneralAbility"}}</a>
     <a class="item" data-tab="extra">{{localize "ROLENROLL.Tab.ExtraSkill"}}</a>
-    <a class="item" data-tab="gear">{{localize "ROLENROLL.Tab.Gear"}}</a>
+    <a class="item" data-tab="inventory">{{localize "ROLENROLL.Tab.Inventory"}}</a>
     <a class="item" data-tab="notes">{{localize "ROLENROLL.Tab.Notes"}}</a>
   </nav>
 
@@ -228,15 +228,77 @@
       </div>
     </div>
 
-    <div class="tab" data-group="primary" data-tab="gear">
-      <label>
-        <span>{{localize "ROLENROLL.Field.Equipment"}}</span>
-        <textarea name="system.equipment">{{system.equipment}}</textarea>
-      </label>
-      <label>
-        <span>{{localize "ROLENROLL.Field.Statuses"}}</span>
-        <textarea name="system.statuses">{{system.statuses}}</textarea>
-      </label>
+    <div class="tab" data-group="primary" data-tab="inventory">
+      <div class="inventory-layout">
+        <section class="inventory-panel">
+          <div class="inventory-panel-header">
+            <h2>{{localize "ROLENROLL.Inventory.Equipment"}}</h2>
+            <button type="button" data-add-equipment>{{localize "ROLENROLL.Inventory.AddGear"}}</button>
+          </div>
+
+          <div class="inventory-entry-list">
+            {{#each equipmentSlots}}
+              <article class="inventory-entry" data-equipment-entry="{{slot}}">
+                <input type="hidden" name="system.equipmentEntries.{{slot}}.active" value="true">
+                <label class="inventory-entry-name">
+                  <span>{{localize "ROLENROLL.Inventory.GearName"}}</span>
+                  <input type="text" name="system.equipmentEntries.{{slot}}.name" value="{{name}}">
+                </label>
+                <label>
+                  <span>{{localize "ROLENROLL.Inventory.Location"}}</span>
+                  <select name="system.equipmentEntries.{{slot}}.location">
+                    {{#each locationOptions}}
+                      <option value="{{key}}" {{#if selected}}selected{{/if}}>{{label}}</option>
+                    {{/each}}
+                  </select>
+                </label>
+                <label class="inventory-entry-details">
+                  <span>{{localize "ROLENROLL.Inventory.Details"}}</span>
+                  <textarea name="system.equipmentEntries.{{slot}}.details">{{details}}</textarea>
+                </label>
+                <div class="inventory-entry-actions">
+                  <button type="button" data-remove-equipment="{{slot}}">{{localize "ROLENROLL.Action.Remove"}}</button>
+                </div>
+              </article>
+            {{else}}
+              <p class="empty-list">{{localize "ROLENROLL.Inventory.NoEquipment"}}</p>
+            {{/each}}
+          </div>
+        </section>
+
+        <section class="inventory-panel">
+          <div class="inventory-panel-header">
+            <h2>{{localize "ROLENROLL.Inventory.Items"}}</h2>
+            <button type="button" data-add-inventory-item>{{localize "ROLENROLL.Inventory.AddItem"}}</button>
+          </div>
+
+          <div class="inventory-entry-list">
+            {{#each inventoryItems}}
+              <article class="inventory-entry" data-inventory-item="{{slot}}">
+                <input type="hidden" name="system.inventoryItems.{{slot}}.active" value="true">
+                <label class="inventory-entry-name">
+                  <span>{{localize "ROLENROLL.Inventory.ItemName"}}</span>
+                  <input type="text" name="system.inventoryItems.{{slot}}.name" value="{{name}}">
+                </label>
+                <label class="inventory-entry-quantity">
+                  <span>{{localize "ROLENROLL.Inventory.Quantity"}}</span>
+                  <input type="number" name="system.inventoryItems.{{slot}}.quantity" value="{{quantity}}" min="0">
+                </label>
+                <label class="inventory-entry-details">
+                  <span>{{localize "ROLENROLL.Inventory.Details"}}</span>
+                  <textarea name="system.inventoryItems.{{slot}}.details">{{details}}</textarea>
+                </label>
+                <div class="inventory-entry-actions">
+                  <button type="button" data-use-inventory-item="{{slot}}">{{localize "ROLENROLL.Inventory.Use"}}</button>
+                  <button type="button" data-remove-inventory-item="{{slot}}">{{localize "ROLENROLL.Action.Remove"}}</button>
+                </div>
+              </article>
+            {{else}}
+              <p class="empty-list">{{localize "ROLENROLL.Inventory.NoItems"}}</p>
+            {{/each}}
+          </div>
+        </section>
+      </div>
     </div>
 
     <div class="tab" data-group="primary" data-tab="notes">
