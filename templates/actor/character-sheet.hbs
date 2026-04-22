@@ -38,27 +38,47 @@
 
   <section class="sheet-body">
     <div class="tab" data-group="primary" data-tab="attributes">
+      <section class="roll-controls">
+        <label>
+          <span>{{localize "ROLENROLL.Roll.SpecialDice"}}</span>
+          <input type="text" name="system.roll.specialDice" value="{{system.roll.specialDice}}" placeholder="a1, n2">
+        </label>
+        <label>
+          <span>{{localize "ROLENROLL.Roll.Succeed"}}</span>
+          <input type="number" name="system.roll.success" value="{{system.roll.success}}" min="0">
+        </label>
+        <label>
+          <span>{{localize "ROLENROLL.Roll.Penalty"}}</span>
+          <input type="number" name="system.roll.penalty" value="{{system.roll.penalty}}" min="0">
+        </label>
+      </section>
+
       <div class="attribute-grid">
-        <label class="attribute-row">
-          <span>{{localize "ROLENROLL.Attribute.strength"}}</span>
-          <input type="number" name="system.attributes.strength" value="{{system.attributes.strength}}">
-          <button type="button" data-roll-attribute="strength">{{localize "ROLENROLL.Action.Roll"}}</button>
-        </label>
-        <label class="attribute-row">
-          <span>{{localize "ROLENROLL.Attribute.dexterity"}}</span>
-          <input type="number" name="system.attributes.dexterity" value="{{system.attributes.dexterity}}">
-          <button type="button" data-roll-attribute="dexterity">{{localize "ROLENROLL.Action.Roll"}}</button>
-        </label>
-        <label class="attribute-row">
-          <span>{{localize "ROLENROLL.Attribute.intelligence"}}</span>
-          <input type="number" name="system.attributes.intelligence" value="{{system.attributes.intelligence}}">
-          <button type="button" data-roll-attribute="intelligence">{{localize "ROLENROLL.Action.Roll"}}</button>
-        </label>
-        <label class="attribute-row">
-          <span>{{localize "ROLENROLL.Attribute.charisma"}}</span>
-          <input type="number" name="system.attributes.charisma" value="{{system.attributes.charisma}}">
-          <button type="button" data-roll-attribute="charisma">{{localize "ROLENROLL.Action.Roll"}}</button>
-        </label>
+        {{#each attributes}}
+          <div class="attribute-row">
+            <div class="attribute-name">
+              <span>{{label}}</span>
+              <small>{{code}}</small>
+            </div>
+            <input type="hidden" name="system.attributes.{{key}}" value="{{value}}">
+            <div class="stat-dots" aria-label="{{label}}">
+              {{#each dots}}
+                <button
+                  type="button"
+                  class="stat-dot {{#if active}}active{{/if}}"
+                  data-attribute-dot="{{../key}}"
+                  data-value="{{value}}"
+                  aria-label="{{../label}} {{value}}"
+                ></button>
+              {{/each}}
+            </div>
+            <label class="stat-bonus">
+              <input type="checkbox" name="system.attributeBonuses.{{key}}" {{#if bonus}}checked{{/if}}>
+              <span>{{localize "ROLENROLL.Roll.AttributeSucceed"}}</span>
+            </label>
+            <button type="button" data-roll-attribute="{{key}}">{{localize "ROLENROLL.Action.RollD6"}}</button>
+          </div>
+        {{/each}}
       </div>
     </div>
 

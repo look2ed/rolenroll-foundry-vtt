@@ -66,12 +66,82 @@
 
 .rolenroll .attribute-grid {
   display: grid;
-  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
 .rolenroll .attribute-row {
-  grid-template-columns: minmax(120px, 1fr) 80px auto;
+  display: grid;
+  grid-template-columns: minmax(110px, 1fr) auto;
+  gap: 8px 12px;
   align-items: center;
+  padding: 10px;
+  border: 1px solid #d6d1c5;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.rolenroll .attribute-name {
+  display: grid;
+  gap: 1px;
+}
+
+.rolenroll .attribute-name span {
+  color: #173a3f;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.rolenroll .attribute-name small {
+  color: #6a6253;
+  font-weight: 800;
+}
+
+.rolenroll .roll-controls {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 100px 100px;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px solid #d6d1c5;
+  border-radius: 8px;
+  background: #f8f3e7;
+}
+
+.rolenroll .stat-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.rolenroll .stat-dot {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border-radius: 50%;
+  background: #fffdf7;
+}
+
+.rolenroll .stat-dot.active {
+  background: #23545a;
+  border-color: #173a3f;
+}
+
+.rolenroll .stat-bonus {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  color: #5f5b50;
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.rolenroll .stat-bonus input {
+  margin: 0;
+}
+
+.rolenroll .attribute-row > button {
+  min-height: 30px;
 }
 
 .rolenroll textarea {
@@ -89,4 +159,101 @@
 .rolenroll button:hover {
   background: #dcebea;
   border-color: #23545a;
+}
+
+@media (max-width: 720px) {
+  .rolenroll .sheet-header,
+  .rolenroll .resource-grid,
+  .rolenroll .attribute-grid,
+  .rolenroll .roll-controls {
+    grid-template-columns: 1fr;
+  }
+}
+
+.role-roll-chat {
+  display: grid;
+  gap: 8px;
+}
+
+.role-roll-header {
+  font-size: 1.05rem;
+}
+
+.role-roll-dice-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+}
+
+.role-roll-dice-row em {
+  color: #5f5b50;
+  font-size: 0.85rem;
+}
+
+.role-roll-die {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid #a9a291;
+  border-radius: 6px;
+  background: #fffdf7;
+  color: #171717;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.role-roll-face-point,
+.role-roll-face-reroll {
+  background: #dcebea;
+  border-color: #23545a;
+}
+
+.role-roll-face-plus {
+  background: #e6f3df;
+  border-color: #598345;
+}
+
+.role-roll-face-minus {
+  background: #f5dfdc;
+  border-color: #9a5047;
+}
+
+.role-roll-face-blank {
+  color: #a9a291;
+}
+
+.role-roll-summary {
+  display: grid;
+  gap: 4px;
+  margin: 2px 0 0;
+}
+
+.role-roll-summary div {
+  display: grid;
+  grid-template-columns: minmax(110px, 1fr) auto;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.role-roll-summary dt,
+.role-roll-summary dd {
+  margin: 0;
+}
+
+.role-roll-summary dt {
+  color: #5f5b50;
+  font-weight: 700;
+}
+
+.role-roll-summary dd {
+  font-weight: 800;
+}
+
+.role-roll-summary .role-roll-total {
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid #d6d1c5;
+  font-size: 1.08rem;
 }
