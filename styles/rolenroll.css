@@ -2,6 +2,30 @@
   color: #171717;
 }
 
+.rolenroll.sheet.actor .window-header {
+  border-bottom: 1px solid #bfb8a8;
+  background: #f6f2e8;
+  color: #173a3f;
+}
+
+.rolenroll.sheet.actor .window-title,
+.rolenroll.sheet.actor .window-header a,
+.rolenroll.sheet.actor .window-header button,
+.rolenroll.sheet.actor .window-header i {
+  color: #173a3f;
+  text-shadow: none;
+}
+
+.rolenroll.sheet.actor .window-header a:hover,
+.rolenroll.sheet.actor .window-header button:hover {
+  color: #111111;
+  background: #dcebea;
+}
+
+.rolenroll.sheet.actor .window-header .header-button {
+  border-radius: 4px;
+}
+
 .rolenroll,
 .rolenroll * {
   box-sizing: border-box;
