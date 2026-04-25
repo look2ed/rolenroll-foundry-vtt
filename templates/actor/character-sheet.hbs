@@ -1,6 +1,6 @@
 <form class="{{cssClass}}" autocomplete="off">
   <header class="sheet-header">
-    <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" height="100" width="100">
+    <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" height="112" width="112">
     <div class="header-fields">
       <h1>
         <input name="name" type="text" value="{{actor.name}}" placeholder="{{rolenrollLocalize 'ROLENROLL.Actor.Name'}}">
@@ -49,6 +49,16 @@
           </span>
         </label>
       </div>
+      {{#if headerStatuses.length}}
+        <div class="header-status-list">
+          {{#each headerStatuses}}
+            <span class="header-status-chip is-{{category}}">
+              <strong>{{#if name}}{{name}}{{else}}{{rolenrollLocalize "ROLENROLL.Status.Untitled"}}{{/if}}</strong>
+              <small>{{durationText}}</small>
+            </span>
+          {{/each}}
+        </div>
+      {{/if}}
     </div>
   </header>
 
@@ -181,10 +191,13 @@
                     {{#if defense}}<span>{{rolenrollLocalize "ROLENROLL.Inventory.Defense"}} {{defense}}</span>{{/if}}
                     {{#if toughness}}<span>{{rolenrollLocalize "ROLENROLL.Inventory.Toughness"}} {{toughness}}</span>{{/if}}
                   </div>
-                  <div class="inline-counter compact-card-counter">
-                    <button type="button" data-adjust-equipment-charge="{{slot}}" data-delta="-1">-</button>
-                    <span>{{rolenrollLocalize "ROLENROLL.Inventory.Charge"}} {{charge}}</span>
-                    <button type="button" data-adjust-equipment-charge="{{slot}}" data-delta="1">+</button>
+                  <div class="compact-counter-row">
+                    <span class="compact-card-counter-label">{{rolenrollLocalize "ROLENROLL.Inventory.Charge"}}</span>
+                    <div class="inline-counter compact-card-counter">
+                      <button type="button" data-adjust-equipment-charge="{{slot}}" data-delta="-1">-</button>
+                      <span>{{charge}}</span>
+                      <button type="button" data-adjust-equipment-charge="{{slot}}" data-delta="1">+</button>
+                    </div>
                   </div>
                   {{#if details}}<p>{{details}}</p>{{/if}}
                 </div>
@@ -247,10 +260,13 @@
                     <span>{{durationText}}</span>
                   </div>
                   {{#if isTurnStatus}}
-                    <div class="inline-counter compact-card-counter">
-                      <button type="button" data-adjust-status-turns="{{slot}}" data-delta="-1">-</button>
-                      <span>{{rolenrollLocalize "ROLENROLL.Status.Turns"}} {{durationTurns}}</span>
-                      <button type="button" data-adjust-status-turns="{{slot}}" data-delta="1">+</button>
+                    <div class="compact-counter-row">
+                      <span class="compact-card-counter-label">{{rolenrollLocalize "ROLENROLL.Status.Turns"}}</span>
+                      <div class="inline-counter compact-card-counter">
+                        <button type="button" data-adjust-status-turns="{{slot}}" data-delta="-1">-</button>
+                        <span>{{durationTurns}}</span>
+                        <button type="button" data-adjust-status-turns="{{slot}}" data-delta="1">+</button>
+                      </div>
                     </div>
                   {{/if}}
                   {{#if details}}<p>{{details}}</p>{{/if}}
@@ -278,10 +294,13 @@
                     <span>{{durationText}}</span>
                   </div>
                   {{#if isTurnStatus}}
-                    <div class="inline-counter compact-card-counter">
-                      <button type="button" data-adjust-status-turns="{{slot}}" data-delta="-1">-</button>
-                      <span>{{rolenrollLocalize "ROLENROLL.Status.Turns"}} {{durationTurns}}</span>
-                      <button type="button" data-adjust-status-turns="{{slot}}" data-delta="1">+</button>
+                    <div class="compact-counter-row">
+                      <span class="compact-card-counter-label">{{rolenrollLocalize "ROLENROLL.Status.Turns"}}</span>
+                      <div class="inline-counter compact-card-counter">
+                        <button type="button" data-adjust-status-turns="{{slot}}" data-delta="-1">-</button>
+                        <span>{{durationTurns}}</span>
+                        <button type="button" data-adjust-status-turns="{{slot}}" data-delta="1">+</button>
+                      </div>
                     </div>
                   {{/if}}
                   {{#if details}}<p>{{details}}</p>{{/if}}

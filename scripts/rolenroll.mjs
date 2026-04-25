@@ -413,21 +413,10 @@ function parseSpecialDice(specialDice) {
   return configs;
 }
 
-async function showDiceOnBoard(roll, speaker) {
+async function showDiceOnBoard(roll) {
   if (game.dice3d?.showForRoll) {
     await game.dice3d.showForRoll(roll, game.user, true, null, false);
-    return;
   }
-
-  await roll.toMessage({
-    speaker,
-    flavor: localize("ROLENROLL.Roll.BoardDice"),
-    flags: {
-      core: {
-        canPopout: false
-      }
-    }
-  });
 }
 
 function getRollValues(roll) {
@@ -463,7 +452,7 @@ async function rollRolenrollPool(dice, speaker) {
     const next = [];
 
     const roll = await new Roll(`${current.length}d6`).evaluate();
-    await showDiceOnBoard(roll, speaker);
+    await showDiceOnBoard(roll);
     const values = getRollValues(roll);
 
     for (const [index, { config }] of current.entries()) {
@@ -1106,6 +1095,7 @@ class RolenrollActorSheet extends ActorSheet {
     }).filter((entry) => entry.active);
     context.statusBuffs = statusEntries.filter((entry) => entry.category === "buff");
     context.statusDebuffs = statusEntries.filter((entry) => entry.category !== "buff");
+    context.headerStatuses = statusEntries;
     context.canAddStatus = statusEntries.length < STATUS_SLOTS.length;
     return context;
   }

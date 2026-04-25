@@ -54,7 +54,7 @@
 
 .rolenroll .sheet-header {
   display: grid;
-  grid-template-columns: 100px minmax(0, 1fr);
+  grid-template-columns: 112px minmax(0, 1fr);
   gap: 14px;
   align-items: start;
   min-width: 0;
@@ -65,9 +65,15 @@
 }
 
 .rolenroll .profile-img {
+  display: block;
+  width: 112px;
+  height: 112px;
+  max-width: 112px;
+  max-height: 112px;
   border: 1px solid #d6d1c5;
   border-radius: 8px;
   object-fit: cover;
+  object-position: center;
 }
 
 .rolenroll h1 input {
@@ -89,6 +95,56 @@
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 10px;
   min-width: 0;
+}
+
+.rolenroll .header-status-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+  min-width: 0;
+}
+
+.rolenroll .header-status-chip {
+  display: inline-flex;
+  max-width: 100%;
+  gap: 6px;
+  align-items: baseline;
+  padding: 4px 8px;
+  border: 1px solid #d6d1c5;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #173a3f;
+  font-size: 0.82rem;
+  line-height: 1.1;
+}
+
+.rolenroll .header-status-chip.is-buff {
+  border-color: #9eb68e;
+  background: #f4fbef;
+}
+
+.rolenroll .header-status-chip.is-injuries,
+.rolenroll .header-status-chip.is-flaw,
+.rolenroll .header-status-chip.is-psychiatric {
+  border-color: #c99993;
+  background: #fff3f1;
+}
+
+.rolenroll .header-status-chip strong,
+.rolenroll .header-status-chip small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rolenroll .header-status-chip strong {
+  font-weight: 900;
+}
+
+.rolenroll .header-status-chip small {
+  color: #5f5b50;
+  font-weight: 800;
 }
 
 .rolenroll label {
@@ -645,6 +701,15 @@
   line-height: 1.1;
 }
 
+.rolenroll .compact-card-actions button[data-remove-extra-skill],
+.rolenroll .compact-card-actions button[data-remove-equipment],
+.rolenroll .compact-card-actions button[data-remove-inventory-item],
+.rolenroll .compact-card-actions button[data-remove-status] {
+  font-size: 0.74rem;
+  overflow-wrap: normal;
+  white-space: nowrap;
+}
+
 .rolenroll .status-toolbar {
   display: flex;
   justify-content: flex-end;
@@ -747,10 +812,23 @@
 }
 
 .rolenroll .inline-counter span {
-  min-width: 62px;
+  min-width: 36px;
   color: #173a3f;
   font-weight: 900;
   text-align: center;
+}
+
+.rolenroll .compact-counter-row {
+  display: flex;
+  width: fit-content;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.rolenroll .compact-card-counter-label {
+  color: #173a3f;
+  font-weight: 900;
 }
 
 .rolenroll .compact-card-counter {
@@ -854,6 +932,11 @@
   display: grid;
   gap: 8px;
   color: #111111;
+  text-shadow: none;
+}
+
+.role-roll-chat * {
+  text-shadow: none;
 }
 
 .role-roll-header {
