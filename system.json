@@ -2,7 +2,7 @@
   "id": "rolenroll",
   "title": "Role & Roll",
   "description": "Unofficial Foundry VTT system for Role & Roll.",
-  "version": "1.1.27",
+  "version": "1.1.28",
   "compatibility": {
     "minimum": 12,
     "verified": 14
@@ -53,7 +53,7 @@
     "units": "ft"
   },
   "primaryTokenAttribute": "resources.health",
-  "secondaryTokenAttribute": "resources.willpower",
+  "secondaryTokenAttribute": "resources.mental",
   "url": "https://github.com/look2ed/rolenroll-foundry-vtt",
   "manifest": "https://raw.githubusercontent.com/look2ed/rolenroll-foundry-vtt/main/system.json",
   "download": "https://github.com/look2ed/rolenroll-foundry-vtt/archive/refs/heads/main.zip",
