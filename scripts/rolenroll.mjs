@@ -413,9 +413,16 @@ function parseSpecialDice(specialDice) {
   return configs;
 }
 
-async function showDiceSoNiceOnly(roll) {
-  if (game.dice3d?.showForRoll) {
-    await game.dice3d.showForRoll(roll, game.user, true, null, false);
+function showDiceSoNiceOnly(roll, speaker) {
+  if (!game.dice3d?.showForRoll) return;
+
+  try {
+    Promise.resolve(game.dice3d.showForRoll(roll, game.user, true, null, false, null, speaker))
+      .catch((error) => {
+        console.warn("RolEnRoll | Dice So Nice animation failed.", error);
+      });
+  } catch (error) {
+    console.warn("RolEnRoll | Dice So Nice animation failed.", error);
   }
 }
 
@@ -440,7 +447,7 @@ function confirmReroll(count) {
   });
 }
 
-async function rollRolenrollPool(dice) {
+async function rollRolenrollPool(dice, speaker) {
   const rounds = [];
   let current = dice.map((config) => ({ config }));
   let safety = 0;
@@ -452,7 +459,7 @@ async function rollRolenrollPool(dice) {
     const next = [];
 
     const roll = await new Roll(`${current.length}d6`).evaluate();
-    await showDiceSoNiceOnly(roll);
+    showDiceSoNiceOnly(roll, speaker);
     const values = getRollValues(roll);
 
     for (const [index, { config }] of current.entries()) {
@@ -890,7 +897,14 @@ async function performPoolRoll({ label, totalDice, specialDice = "", success = 0
   const speaker = actor
     ? ChatMessage.getSpeaker({ actor })
     : ChatMessage.getSpeaker();
-  const result = await rollRolenrollPool(dice);
+  let result;
+  try {
+    result = await rollRolenrollPool(dice, speaker);
+  } catch (error) {
+    console.error("RolEnRoll | Roll failed.", error);
+    ui.notifications.error(error.message ?? String(error));
+    return;
+  }
   const content = buildRollMessage({ label, totalDice, specialDice, success, penalty, result });
 
   await ChatMessage.create({ speaker, content });
