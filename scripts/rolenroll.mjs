@@ -421,14 +421,12 @@ function showDiceSoNiceOnly(round) {
       result: die.roll,
       resultLabel: String(die.roll),
       type: "d6",
-      system: "dot",
       vectors: [],
       options: {
         appearance: {
-          system: "dot",
-          background: "#f7ffff",
+          background: "#e3f4f2",
           foreground: "#173a3f",
-          outline: "#f7ffff",
+          outline: "#fbfffb",
           edge: "#23545a"
         }
       }
