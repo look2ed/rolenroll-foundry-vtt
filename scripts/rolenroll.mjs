@@ -132,11 +132,11 @@ const STATUS_DURATION_KINDS = ["permanent", "temporary"];
 const STATUS_DURATION_MODES = ["turns", "skill-check"];
 const ROLENROLL_DICE_SYSTEM_ID = "rolenroll";
 const ROLENROLL_DICE_TEXTURES = {
-  blank: "systems/rolenroll/assets/dice/blank.png",
-  dot: "systems/rolenroll/assets/dice/dot.png",
-  r: "systems/rolenroll/assets/dice/r.png",
-  plus: "systems/rolenroll/assets/dice/plus.png",
-  minus: "systems/rolenroll/assets/dice/minus.png"
+  blank: "/systems/rolenroll/assets/dice/blank.png",
+  dot: "/systems/rolenroll/assets/dice/dot.png",
+  r: "/systems/rolenroll/assets/dice/r.png",
+  plus: "/systems/rolenroll/assets/dice/plus.png",
+  minus: "/systems/rolenroll/assets/dice/minus.png"
 };
 const registeredRolenrollDiceSystems = new Set();
 
