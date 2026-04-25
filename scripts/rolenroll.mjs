@@ -538,6 +538,7 @@ function showDiceSoNiceOnly(round) {
       resultLabel: getRolenrollFaceLabel(die.face),
       labels,
       type: "d6",
+      ...(system ? { system } : {}),
       vectors: [],
       options: {
         appearance: {
@@ -2074,6 +2075,7 @@ Hooks.once("init", () => {
   });
 });
 
+Hooks.once("diceSoNiceReady", registerRolenrollDicePresets);
 Hooks.once("DiceSoNiceReady", registerRolenrollDicePresets);
 
 Hooks.once("ready", async () => {
