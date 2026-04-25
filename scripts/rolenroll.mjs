@@ -130,7 +130,8 @@ const STATUS_SLOTS = [
 const STATUS_CATEGORIES = ["buff", "injuries", "flaw", "psychiatric"];
 const STATUS_DURATION_KINDS = ["permanent", "temporary"];
 const STATUS_DURATION_MODES = ["turns", "skill-check"];
-const ROLENROLL_DICE_SYSTEM_ID = "rolenroll";
+const ROLENROLL_DICE_SYSTEM_ID = "rolenroll-rnr-fixed-v2";
+const ROLENROLL_DICE_LABELS = ["1", "", "", "", "", "6"];
 const registeredRolenrollDiceSystems = new Set();
 
 const FALLBACK_LOCALIZATION = {
@@ -426,67 +427,58 @@ function getRolenrollFaceLabel(face) {
 function getRolenrollDiceAppearance(face) {
   if (face === "+") {
     return {
-      background: "#e6f3df",
-      foreground: "#315322",
+      background: "#e7f4e0",
+      foreground: "#315323",
       outline: "#f7fff3",
-      edge: "#598345"
+      edge: "#598346"
     };
   }
 
   if (face === "-") {
     return {
-      background: "#f5dfdc",
-      foreground: "#71352e",
+      background: "#f6e0dd",
+      foreground: "#71352f",
       outline: "#fff6f4",
-      edge: "#9a5047"
+      edge: "#9a5048"
     };
   }
 
   if (face === "1" || face === "R") {
     return {
-      background: "#dcebea",
-      foreground: "#173a3f",
+      background: "#ddeceb",
+      foreground: "#173a40",
       outline: "#f7ffff",
-      edge: "#23545a"
+      edge: "#23545b"
     };
   }
 
   return {
-    background: "#fffdf7",
-    foreground: "#fffdf7",
+    background: "#fffdf8",
+    foreground: "#fffdf8",
     outline: "#fffdf7",
-    edge: "#a9a291"
+    edge: "#a9a292"
   };
 }
 
-function getRolenrollDieLabels(config) {
-  return buildDieFaces(config).map(getRolenrollFaceLabel);
+function getRolenrollDiceSoNiceResult(die) {
+  if (die.face !== "") return die.roll;
+
+  const faces = buildDieFaces(die.config);
+  const firstBlank = faces.findIndex((face) => face === "");
+  return firstBlank >= 0 ? firstBlank + 1 : die.roll;
 }
 
-function getRolenrollLabelSlug(label) {
-  if (label === "1") return "one";
-  if (label === "6") return "reroll";
-  if (label === "+") return "plus";
-  if (label === "-") return "minus";
-  return "blank";
-}
-
-function getRolenrollDiceSystemId(labels) {
-  const slug = labels.map(getRolenrollLabelSlug).join("-");
-  return `${ROLENROLL_DICE_SYSTEM_ID}-${slug}`;
-}
-
-function ensureRolenrollDicePreset(labels, dice3d = game.dice3d) {
+function ensureRolenrollDicePreset(dice3d = game.dice3d) {
   if (!dice3d?.addSystem || !dice3d?.addDicePreset) return null;
 
-  const system = getRolenrollDiceSystemId(labels);
+  const system = ROLENROLL_DICE_SYSTEM_ID;
   if (registeredRolenrollDiceSystems.has(system)) return system;
 
   try {
     dice3d.addSystem({ id: system, name: "Role & Roll" }, "default");
     dice3d.addDicePreset({
       type: "d6",
-      labels,
+      labels: ROLENROLL_DICE_LABELS,
       system,
       font: "Arial Black",
       fontScale: 1.15
@@ -500,34 +492,18 @@ function ensureRolenrollDicePreset(labels, dice3d = game.dice3d) {
 }
 
 function registerRolenrollDicePresets(dice3d) {
-  if (!dice3d?.addSystem || !dice3d?.addDicePreset) return;
-
-  const middleFaces = ["", "+", "-"];
-  const combinations = [];
-
-  for (const faceTwo of middleFaces) {
-    for (const faceThree of middleFaces) {
-      for (const faceFour of middleFaces) {
-        for (const faceFive of middleFaces) {
-          combinations.push(["1", faceTwo, faceThree, faceFour, faceFive, "6"]);
-        }
-      }
-    }
-  }
-
-  for (const labels of combinations) ensureRolenrollDicePreset(labels, dice3d);
+  ensureRolenrollDicePreset(dice3d);
 }
 
 function showDiceSoNiceOnly(round) {
   if (!game.dice3d?.show) return;
 
   const dice = round.map((die) => {
-    const labels = getRolenrollDieLabels(die.config);
-    const system = ensureRolenrollDicePreset(labels);
+    const system = ensureRolenrollDicePreset();
     return {
-      result: die.roll,
+      result: getRolenrollDiceSoNiceResult(die),
       resultLabel: getRolenrollFaceLabel(die.face),
-      labels,
+      labels: ROLENROLL_DICE_LABELS,
       type: "d6",
       ...(system ? { system } : {}),
       vectors: [],
