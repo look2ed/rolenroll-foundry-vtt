@@ -130,6 +130,8 @@ const STATUS_SLOTS = [
 const STATUS_CATEGORIES = ["buff", "injuries", "flaw", "psychiatric"];
 const STATUS_DURATION_KINDS = ["permanent", "temporary"];
 const STATUS_DURATION_MODES = ["turns", "skill-check"];
+const ROLENROLL_DICE_SYSTEM_ID = "rolenroll";
+const registeredRolenrollDiceTypes = new Set();
 
 const FALLBACK_LOCALIZATION = {
   "Cancel": "Cancel",
@@ -461,19 +463,57 @@ function getRolenrollDieLabels(config) {
   return buildDieFaces(config).map(getRolenrollFaceLabel);
 }
 
+function getRolenrollDieType(labels) {
+  const slug = labels.map((label) => {
+    if (label === "●") return "dot";
+    if (label === "Ⓡ") return "r";
+    if (label === "+") return "plus";
+    if (label === "-") return "minus";
+    return "blank";
+  }).join("-");
+  return `drr-${slug}`;
+}
+
+function ensureRolenrollDicePreset(labels) {
+  if (!game.dice3d?.addSystem || !game.dice3d?.addDicePreset) return null;
+
+  const type = getRolenrollDieType(labels);
+  if (registeredRolenrollDiceTypes.has(type)) return type;
+
+  try {
+    game.dice3d.addSystem({ id: ROLENROLL_DICE_SYSTEM_ID, name: "Role & Roll" }, "default");
+    game.dice3d.addDicePreset({
+      type,
+      labels,
+      system: ROLENROLL_DICE_SYSTEM_ID,
+      font: "Arial Black",
+      fontScale: 1.15
+    }, "d6");
+    registeredRolenrollDiceTypes.add(type);
+    return type;
+  } catch (error) {
+    console.warn("RolEnRoll | Dice So Nice preset registration failed.", error);
+    return null;
+  }
+}
+
 function showDiceSoNiceOnly(round) {
   if (!game.dice3d?.show) return;
 
-  const dice = round.map((die) => ({
-    result: die.roll,
-    resultLabel: getRolenrollFaceLabel(die.face),
-    labels: getRolenrollDieLabels(die.config),
-    type: "d6",
-    vectors: [],
-    options: {
-      appearance: getRolenrollDiceAppearance(die.face)
-    }
-  }));
+  const dice = round.map((die) => {
+    const labels = getRolenrollDieLabels(die.config);
+    const type = ensureRolenrollDicePreset(labels) ?? "d6";
+    return {
+      result: die.roll,
+      resultLabel: getRolenrollFaceLabel(die.face),
+      labels,
+      type,
+      vectors: [],
+      options: {
+        appearance: getRolenrollDiceAppearance(die.face)
+      }
+    };
+  });
 
   try {
     Promise.resolve(game.dice3d.show({ throws: [{ dice }] }, game.user, false, null, false))
