@@ -229,7 +229,7 @@ const FALLBACK_LOCALIZATION = {
   "ROLENROLL.Roll.SpecialDiceHint": "Use old roller syntax: a1-a4 for plus dice, n1-n4 for negative dice.",
   "ROLENROLL.Roll.Succeed": "Succeed",
   "ROLENROLL.Roll.SucceedPenalty": "Succeed / Penalty",
-  "ROLENROLL.Roll.Tokens": "Tokens",
+  "ROLENROLL.Roll.Tokens": "+/- dice",
   "ROLENROLL.Roll.TooManyDice": "RolEnRoll: Too many dice requested (max 50).",
   "ROLENROLL.Roll.TooManySpecialDice": "Number of special dice cannot be more than total dice.",
   "ROLENROLL.Roll.Total": "Total",
@@ -413,11 +413,34 @@ function parseSpecialDice(specialDice) {
   return configs;
 }
 
-function showDiceSoNiceOnly(roll, speaker) {
-  if (!game.dice3d?.showForRoll) return;
+function getRolenrollFaceLabel(face) {
+  if (face === "1") return "•";
+  if (face === "R") return "Ⓡ";
+  if (face === "+") return "+";
+  if (face === "-") return "-";
+  return "";
+}
+
+function showDiceSoNiceOnly(round) {
+  if (!game.dice3d?.show) return;
+
+  const dice = round.map((die) => ({
+    result: die.roll,
+    resultLabel: getRolenrollFaceLabel(die.face),
+    type: "d6",
+    vectors: [],
+    options: {
+      appearance: {
+        background: die.face === "+" ? "#e6f3df" : die.face === "-" ? "#f5dfdc" : die.face === "1" || die.face === "R" ? "#dcebea" : "#fffdf7",
+        foreground: die.face === "+" ? "#315322" : die.face === "-" ? "#71352e" : "#173a3f",
+        outline: die.face === "+" ? "#598345" : die.face === "-" ? "#9a5047" : die.face === "1" || die.face === "R" ? "#23545a" : "#a9a291",
+        edge: "#a9a291"
+      }
+    }
+  }));
 
   try {
-    Promise.resolve(game.dice3d.showForRoll(roll, game.user, false, null, false, null, speaker))
+    Promise.resolve(game.dice3d.show({ throws: [{ dice }] }, game.user, false, null, false))
       .catch((error) => {
         console.warn("RolEnRoll | Dice So Nice animation failed.", error);
       });
@@ -447,7 +470,7 @@ function confirmReroll(count) {
   });
 }
 
-async function rollRolenrollPool(dice, speaker) {
+async function rollRolenrollPool(dice) {
   const rounds = [];
   let current = dice.map((config) => ({ config }));
   let safety = 0;
@@ -459,7 +482,6 @@ async function rollRolenrollPool(dice, speaker) {
     const next = [];
 
     const roll = await new Roll(`${current.length}d6`).evaluate();
-    showDiceSoNiceOnly(roll, speaker);
     const values = getRollValues(roll);
 
     for (const [index, { config }] of current.entries()) {
@@ -470,6 +492,7 @@ async function rollRolenrollPool(dice, speaker) {
       if (face === "R") next.push({ config: { ...config } });
     }
 
+    showDiceSoNiceOnly(thisRound);
     rounds.push(thisRound);
 
     if (next.length > 0) await confirmReroll(next.length);
@@ -500,6 +523,27 @@ function faceToDieHtml(face) {
   return '<span class="role-roll-die role-roll-face-blank">&nbsp;</span>';
 }
 
+function formatSpecialDiceSummary(specialDice) {
+  let configs;
+  try {
+    configs = parseSpecialDice(specialDice);
+  } catch (error) {
+    return escapeHtml(specialDice);
+  }
+
+  const labels = configs.map((config) => {
+    const faces = buildDieFaces(config);
+    const plusCount = faces.filter((face) => face === "+").length;
+    const minusCount = faces.filter((face) => face === "-").length;
+    const parts = [];
+    if (plusCount) parts.push(`+${plusCount}`);
+    if (minusCount) parts.push(`-${minusCount}`);
+    return parts.length ? parts.join(" / ") : localize("ROLENROLL.Roll.SpecialDie");
+  });
+
+  return labels.length ? labels.map(escapeHtml).join(", ") : localize("ROLENROLL.Roll.NoSpecialDice");
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -517,7 +561,7 @@ function buildRollMessage({ label, totalDice, specialDice, success, penalty, res
   }).join("");
   const diceTotal = result.scoring.total;
   const finalTotal = Math.max(0, diceTotal + success - penalty);
-  const specialText = specialDice ? escapeHtml(specialDice) : localize("ROLENROLL.Roll.NoSpecialDice");
+  const specialText = specialDice ? formatSpecialDiceSummary(specialDice) : localize("ROLENROLL.Roll.NoSpecialDice");
 
   return `
     <div class="role-roll-chat">
@@ -899,7 +943,7 @@ async function performPoolRoll({ label, totalDice, specialDice = "", success = 0
     : ChatMessage.getSpeaker();
   let result;
   try {
-    result = await rollRolenrollPool(dice, speaker);
+    result = await rollRolenrollPool(dice);
   } catch (error) {
     console.error("RolEnRoll | Roll failed.", error);
     ui.notifications.error(error.message ?? String(error));

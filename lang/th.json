@@ -99,7 +99,7 @@
   "ROLENROLL.Roll.SpecialDiceHint": "Use old roller syntax: a1-a4 for plus dice, n1-n4 for negative dice.",
   "ROLENROLL.Roll.Succeed": "Succeed",
   "ROLENROLL.Roll.SucceedPenalty": "Succeed / Penalty",
-  "ROLENROLL.Roll.Tokens": "Tokens",
+  "ROLENROLL.Roll.Tokens": "+/- dice",
   "ROLENROLL.Roll.TooManyDice": "RolEnRoll: Too many dice requested (max 50).",
   "ROLENROLL.Roll.TooManySpecialDice": "Number of special dice cannot be more than total dice.",
   "ROLENROLL.Roll.Total": "Total",
