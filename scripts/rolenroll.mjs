@@ -130,9 +130,6 @@ const STATUS_SLOTS = [
 const STATUS_CATEGORIES = ["buff", "injuries", "flaw", "psychiatric"];
 const STATUS_DURATION_KINDS = ["permanent", "temporary"];
 const STATUS_DURATION_MODES = ["turns", "skill-check"];
-const ROLENROLL_DICE_SYSTEM_ID = "rolenroll-rnr-fixed-v2";
-const ROLENROLL_DICE_LABELS = ["1", "", "", "", "", "6"];
-const registeredRolenrollDiceSystems = new Set();
 
 const FALLBACK_LOCALIZATION = {
   "Cancel": "Cancel",
@@ -416,101 +413,21 @@ function parseSpecialDice(specialDice) {
   return configs;
 }
 
-function getRolenrollFaceLabel(face) {
-  if (face === "1") return "1";
-  if (face === "R") return "6";
-  if (face === "+") return "+";
-  if (face === "-") return "-";
-  return "";
-}
-
-function getRolenrollDiceAppearance(face) {
-  if (face === "+") {
-    return {
-      background: "#e7f4e0",
-      foreground: "#315323",
-      outline: "#f7fff3",
-      edge: "#598346"
-    };
-  }
-
-  if (face === "-") {
-    return {
-      background: "#f6e0dd",
-      foreground: "#71352f",
-      outline: "#fff6f4",
-      edge: "#9a5048"
-    };
-  }
-
-  if (face === "1" || face === "R") {
-    return {
-      background: "#ddeceb",
-      foreground: "#173a40",
-      outline: "#f7ffff",
-      edge: "#23545b"
-    };
-  }
-
-  return {
-    background: "#fffdf8",
-    foreground: "#fffdf8",
-    outline: "#fffdf7",
-    edge: "#a9a292"
-  };
-}
-
-function getRolenrollDiceSoNiceResult(die) {
-  if (die.face !== "") return die.roll;
-
-  const faces = buildDieFaces(die.config);
-  const firstBlank = faces.findIndex((face) => face === "");
-  return firstBlank >= 0 ? firstBlank + 1 : die.roll;
-}
-
-function ensureRolenrollDicePreset(dice3d = game.dice3d) {
-  if (!dice3d?.addSystem || !dice3d?.addDicePreset) return null;
-
-  const system = ROLENROLL_DICE_SYSTEM_ID;
-  if (registeredRolenrollDiceSystems.has(system)) return system;
-
-  try {
-    dice3d.addSystem({ id: system, name: "Role & Roll" }, "default");
-    dice3d.addDicePreset({
-      type: "d6",
-      labels: ROLENROLL_DICE_LABELS,
-      system,
-      font: "Arial Black",
-      fontScale: 1.15
-    }, "d6");
-    registeredRolenrollDiceSystems.add(system);
-    return system;
-  } catch (error) {
-    console.warn("RolEnRoll | Dice So Nice preset registration failed.", error);
-    return null;
-  }
-}
-
-function registerRolenrollDicePresets(dice3d) {
-  ensureRolenrollDicePreset(dice3d);
-}
-
 function showDiceSoNiceOnly(round) {
   if (!game.dice3d?.show) return;
 
   const dice = round.map((die) => {
-    const system = ensureRolenrollDicePreset();
     return {
-      result: getRolenrollDiceSoNiceResult(die),
-      resultLabel: getRolenrollFaceLabel(die.face),
-      labels: ROLENROLL_DICE_LABELS,
+      result: die.roll,
+      resultLabel: String(die.roll),
       type: "d6",
-      ...(system ? { system } : {}),
       vectors: [],
       options: {
         appearance: {
-          ...getRolenrollDiceAppearance(die.face),
-          ...(system ? { system } : {})
+          background: "#fffdf7",
+          foreground: "#173a3f",
+          outline: "#f7ffff",
+          edge: "#23545a"
         }
       }
     };
@@ -2041,9 +1958,6 @@ Hooks.once("init", () => {
     label: "ROLENROLL.Sheet.Character"
   });
 });
-
-Hooks.once("diceSoNiceReady", registerRolenrollDicePresets);
-Hooks.once("DiceSoNiceReady", registerRolenrollDicePresets);
 
 Hooks.once("ready", async () => {
   let macro = game.macros.getName("Role & Roll Manual Roller");
