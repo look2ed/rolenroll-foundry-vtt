@@ -416,7 +416,7 @@ function parseSpecialDice(specialDice) {
 }
 
 function getRolenrollFaceLabel(face) {
-  if (face === "1") return "●";
+  if (face === "1") return "1";
   if (face === "R") return "6";
   if (face === "+") return "+";
   if (face === "-") return "-";
@@ -463,13 +463,8 @@ function getRolenrollDieLabels(config) {
   return buildDieFaces(config).map(getRolenrollFaceLabel);
 }
 
-function getRolenrollResultDisplayLabels(face) {
-  const label = getRolenrollFaceLabel(face);
-  return Array.from({ length: 6 }, () => label);
-}
-
 function getRolenrollLabelSlug(label) {
-  if (label === "●") return "dot";
+  if (label === "1") return "one";
   if (label === "6") return "reroll";
   if (label === "+") return "plus";
   if (label === "-") return "minus";
@@ -510,15 +505,11 @@ function registerRolenrollDicePresets(dice3d) {
   const middleFaces = ["", "+", "-"];
   const combinations = [];
 
-  for (const face of ["1", "R", "+", "-", ""]) {
-    combinations.push(getRolenrollResultDisplayLabels(face));
-  }
-
   for (const faceTwo of middleFaces) {
     for (const faceThree of middleFaces) {
       for (const faceFour of middleFaces) {
         for (const faceFive of middleFaces) {
-          combinations.push(["●", faceTwo, faceThree, faceFour, faceFive, "6"]);
+          combinations.push(["1", faceTwo, faceThree, faceFour, faceFive, "6"]);
         }
       }
     }
@@ -531,7 +522,7 @@ function showDiceSoNiceOnly(round) {
   if (!game.dice3d?.show) return;
 
   const dice = round.map((die) => {
-    const labels = getRolenrollResultDisplayLabels(die.face);
+    const labels = getRolenrollDieLabels(die.config);
     const system = ensureRolenrollDicePreset(labels);
     return {
       result: die.roll,
