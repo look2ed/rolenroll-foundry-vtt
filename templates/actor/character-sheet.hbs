@@ -1,11 +1,11 @@
 <form class="{{cssClass}}" autocomplete="off">
   <header class="sheet-header">
-    <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" height="112" width="112">
+    <img class="profile-img" src="{{actor.img}}" data-edit="img" title="{{actor.name}}" height="184" width="184">
     <div class="header-fields">
       <h1>
         <input name="name" type="text" value="{{actor.name}}" placeholder="{{rolenrollLocalize 'ROLENROLL.Actor.Name'}}">
       </h1>
-      <div class="profile-grid">
+      <div class="header-stat-grid">
         <label>
           <span>{{rolenrollLocalize "ROLENROLL.Profile.Level"}}</span>
           <input type="number" name="system.profile.level" value="{{system.profile.level}}" min="0">
@@ -18,8 +18,6 @@
             <input type="number" name="system.profile.expMax" value="{{system.profile.expMax}}" min="0">
           </span>
         </label>
-      </div>
-      <div class="resource-grid">
         <label>
           <span>{{rolenrollLocalize "ROLENROLL.Resource.Health"}}</span>
           <span class="resource-inputs">
@@ -29,16 +27,16 @@
           </span>
         </label>
         <label>
+          <span>{{rolenrollLocalize "ROLENROLL.Resource.Defense"}}</span>
+          <input type="number" name="system.defense" value="{{system.defense}}">
+        </label>
+        <label>
           <span>{{rolenrollLocalize "ROLENROLL.Resource.Willpower"}}</span>
           <span class="resource-inputs">
             <input type="number" name="system.resources.willpower.value" value="{{system.resources.willpower.value}}">
             <span>/</span>
             <input type="number" name="system.resources.willpower.max" value="{{system.resources.willpower.max}}">
           </span>
-        </label>
-        <label>
-          <span>{{rolenrollLocalize "ROLENROLL.Resource.Defense"}}</span>
-          <input type="number" name="system.defense" value="{{system.defense}}">
         </label>
         <label>
           <span>{{rolenrollLocalize "ROLENROLL.Resource.Mental"}}</span>

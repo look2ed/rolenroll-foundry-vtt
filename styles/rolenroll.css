@@ -54,8 +54,8 @@
 
 .rolenroll .sheet-header {
   display: grid;
-  grid-template-columns: 112px minmax(0, 1fr);
-  gap: 14px;
+  grid-template-columns: 184px minmax(0, 1fr);
+  gap: 18px;
   align-items: start;
   min-width: 0;
 }
@@ -66,10 +66,10 @@
 
 .rolenroll .profile-img {
   display: block;
-  width: 112px;
-  height: 112px;
-  max-width: 112px;
-  max-height: 112px;
+  width: 184px;
+  height: 184px;
+  max-width: 184px;
+  max-height: 184px;
   border: 1px solid #d6d1c5;
   border-radius: 8px;
   object-fit: cover;
@@ -77,24 +77,24 @@
 }
 
 .rolenroll h1 input {
-  height: 42px;
+  height: 36px;
   font-size: 1.45rem;
   font-weight: 800;
 }
 
-.rolenroll .profile-grid {
+.rolenroll .header-stat-grid {
   display: grid;
-  grid-template-columns: minmax(100px, 0.4fr) minmax(180px, 1fr);
-  gap: 10px;
-  margin-bottom: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 12px;
   min-width: 0;
 }
 
-.rolenroll .resource-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 10px;
-  min-width: 0;
+.rolenroll .header-stat-grid label {
+  gap: 2px;
+}
+
+.rolenroll .header-stat-grid input {
+  height: 30px;
 }
 
 .rolenroll .header-status-list {
@@ -897,8 +897,7 @@
 
 @media (max-width: 720px) {
   .rolenroll .sheet-header,
-  .rolenroll .profile-grid,
-  .rolenroll .resource-grid,
+  .rolenroll .header-stat-grid,
   .rolenroll .attribute-grid,
   .rolenroll .roll-controls,
   .rolenroll .skill-grid,
@@ -911,6 +910,13 @@
   .rolenroll .status-entry,
   .rolenroll .more-profile {
     grid-template-columns: 1fr;
+  }
+
+  .rolenroll .profile-img {
+    width: 140px;
+    height: 140px;
+    max-width: 140px;
+    max-height: 140px;
   }
 
   .rolenroll .compact-card {

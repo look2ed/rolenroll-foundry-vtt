@@ -413,7 +413,7 @@ function parseSpecialDice(specialDice) {
   return configs;
 }
 
-async function showDiceOnBoard(roll) {
+async function showDiceSoNiceOnly(roll) {
   if (game.dice3d?.showForRoll) {
     await game.dice3d.showForRoll(roll, game.user, true, null, false);
   }
@@ -440,7 +440,7 @@ function confirmReroll(count) {
   });
 }
 
-async function rollRolenrollPool(dice, speaker) {
+async function rollRolenrollPool(dice) {
   const rounds = [];
   let current = dice.map((config) => ({ config }));
   let safety = 0;
@@ -452,7 +452,7 @@ async function rollRolenrollPool(dice, speaker) {
     const next = [];
 
     const roll = await new Roll(`${current.length}d6`).evaluate();
-    await showDiceOnBoard(roll);
+    await showDiceSoNiceOnly(roll);
     const values = getRollValues(roll);
 
     for (const [index, { config }] of current.entries()) {
@@ -890,7 +890,7 @@ async function performPoolRoll({ label, totalDice, specialDice = "", success = 0
   const speaker = actor
     ? ChatMessage.getSpeaker({ actor })
     : ChatMessage.getSpeaker();
-  const result = await rollRolenrollPool(dice, speaker);
+  const result = await rollRolenrollPool(dice);
   const content = buildRollMessage({ label, totalDice, specialDice, success, penalty, result });
 
   await ChatMessage.create({ speaker, content });
