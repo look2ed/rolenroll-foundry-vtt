@@ -130,6 +130,9 @@ const STATUS_SLOTS = [
 const STATUS_CATEGORIES = ["buff", "injuries", "flaw", "psychiatric"];
 const STATUS_DURATION_KINDS = ["permanent", "temporary"];
 const STATUS_DURATION_MODES = ["turns", "skill-check"];
+const ROLENROLL_DICE_SYSTEM_ID = "rolenroll";
+const ROLENROLL_DICE_FACE_POINT = "•";
+const ROLENROLL_DICE_FACE_REROLL = "Ⓡ";
 
 const FALLBACK_LOCALIZATION = {
   "Cancel": "Cancel",
@@ -417,12 +420,70 @@ function showDiceSoNiceOnly(roll, speaker) {
   if (!game.dice3d?.showForRoll) return;
 
   try {
-    Promise.resolve(game.dice3d.showForRoll(roll, game.user, true, null, false, null, speaker))
+    Promise.resolve(game.dice3d.showForRoll(roll, game.user, false, null, false, null, speaker))
       .catch((error) => {
         console.warn("RolEnRoll | Dice So Nice animation failed.", error);
       });
   } catch (error) {
     console.warn("RolEnRoll | Dice So Nice animation failed.", error);
+  }
+}
+
+function getRolenrollDiceLabels(token = "", count = 0) {
+  return [
+    ROLENROLL_DICE_FACE_POINT,
+    count >= 1 ? token : "",
+    count >= 2 ? token : "",
+    count >= 3 ? token : "",
+    count >= 4 ? token : "",
+    ROLENROLL_DICE_FACE_REROLL
+  ];
+}
+
+function getDiceSoNiceSystemId(config) {
+  if (config?.kind === "adv") return `${ROLENROLL_DICE_SYSTEM_ID}-plus-${clamp(config.plusCount ?? 1, 1, 4)}`;
+  if (config?.kind === "neg") return `${ROLENROLL_DICE_SYSTEM_ID}-minus-${clamp(config.minusCount ?? 1, 1, 4)}`;
+  return ROLENROLL_DICE_SYSTEM_ID;
+}
+
+function applyDiceSoNiceAppearance(roll, dice) {
+  for (const [index, die] of roll.dice.entries()) {
+    const system = getDiceSoNiceSystemId(dice[index]?.config);
+    die.options.appearance = {
+      ...(die.options.appearance ?? {}),
+      system
+    };
+  }
+}
+
+function registerDiceSoNiceFaces(dice3d) {
+  if (!dice3d?.addSystem || !dice3d?.addDicePreset) return;
+
+  const presets = [
+    {
+      id: ROLENROLL_DICE_SYSTEM_ID,
+      name: "Role & Roll",
+      labels: getRolenrollDiceLabels()
+    },
+    ...[1, 2, 3, 4].map((count) => ({
+      id: `${ROLENROLL_DICE_SYSTEM_ID}-plus-${count}`,
+      name: `Role & Roll +${count}`,
+      labels: getRolenrollDiceLabels("+", count)
+    })),
+    ...[1, 2, 3, 4].map((count) => ({
+      id: `${ROLENROLL_DICE_SYSTEM_ID}-minus-${count}`,
+      name: `Role & Roll -${count}`,
+      labels: getRolenrollDiceLabels("-", count)
+    }))
+  ];
+
+  for (const preset of presets) {
+    dice3d.addSystem({ id: preset.id, name: preset.name }, "default");
+    dice3d.addDicePreset({
+      type: "d6",
+      labels: preset.labels,
+      system: preset.id
+    }, "d6");
   }
 }
 
@@ -458,7 +519,8 @@ async function rollRolenrollPool(dice, speaker) {
     const thisRound = [];
     const next = [];
 
-    const roll = await new Roll(`${current.length}d6`).evaluate();
+    const roll = await new Roll(Array.from({ length: current.length }, () => "1d6").join(" + ")).evaluate();
+    applyDiceSoNiceAppearance(roll, current);
     showDiceSoNiceOnly(roll, speaker);
     const values = getRollValues(roll);
 
@@ -1890,6 +1952,8 @@ Hooks.once("init", () => {
     label: "ROLENROLL.Sheet.Character"
   });
 });
+
+Hooks.once("DiceSoNiceReady", registerDiceSoNiceFaces);
 
 Hooks.once("ready", async () => {
   if (!game.user.isGM) return;
