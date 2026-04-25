@@ -641,8 +641,8 @@ function buildSpecialDiceValue(diceFaces) {
 }
 
 function getSpecialFaceDisplay(face, index) {
-  if (index === 0 || face === "1") return ".";
-  if (face === "R") return "R";
+  if (index === 0 || face === "1") return "•";
+  if (face === "R") return "Ⓡ";
   if (face === "+") return "+";
   if (face === "-") return "-";
   return "";
