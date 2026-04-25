@@ -131,7 +131,13 @@ const STATUS_CATEGORIES = ["buff", "injuries", "flaw", "psychiatric"];
 const STATUS_DURATION_KINDS = ["permanent", "temporary"];
 const STATUS_DURATION_MODES = ["turns", "skill-check"];
 const ROLENROLL_DICE_SYSTEM_ID = "rolenroll";
-const ROLENROLL_BLANK_3D_FACE = "·";
+const ROLENROLL_DICE_TEXTURES = {
+  blank: "systems/rolenroll/assets/dice/blank.png",
+  dot: "systems/rolenroll/assets/dice/dot.png",
+  r: "systems/rolenroll/assets/dice/r.png",
+  plus: "systems/rolenroll/assets/dice/plus.png",
+  minus: "systems/rolenroll/assets/dice/minus.png"
+};
 const registeredRolenrollDiceSystems = new Set();
 
 const FALLBACK_LOCALIZATION = {
@@ -421,7 +427,7 @@ function getRolenrollFaceLabel(face) {
   if (face === "R") return "r";
   if (face === "+") return "+";
   if (face === "-") return "-";
-  return ROLENROLL_BLANK_3D_FACE;
+  return "";
 }
 
 function getRolenrollDiceAppearance(face) {
@@ -483,7 +489,13 @@ function getRolenrollDiceSystemId(labels) {
 }
 
 function getRolenrollDicePresetLabels(labels) {
-  return labels.map((label) => label === ROLENROLL_BLANK_3D_FACE ? "&nbsp;" : label);
+  return labels.map((label) => {
+    if (label === "●") return ROLENROLL_DICE_TEXTURES.dot;
+    if (label === "r") return ROLENROLL_DICE_TEXTURES.r;
+    if (label === "+") return ROLENROLL_DICE_TEXTURES.plus;
+    if (label === "-") return ROLENROLL_DICE_TEXTURES.minus;
+    return ROLENROLL_DICE_TEXTURES.blank;
+  });
 }
 
 function ensureRolenrollDicePreset(labels, dice3d = game.dice3d) {
@@ -512,7 +524,7 @@ function ensureRolenrollDicePreset(labels, dice3d = game.dice3d) {
 function registerRolenrollDicePresets(dice3d) {
   if (!dice3d?.addSystem || !dice3d?.addDicePreset) return;
 
-  const middleFaces = [ROLENROLL_BLANK_3D_FACE, "+", "-"];
+  const middleFaces = ["", "+", "-"];
   const combinations = [];
 
   for (const face of ["1", "R", "+", "-", ""]) {
