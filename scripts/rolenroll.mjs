@@ -418,7 +418,7 @@ function parseSpecialDice(specialDice) {
 
 function getRolenrollFaceLabel(face) {
   if (face === "1") return "●";
-  if (face === "R") return "R";
+  if (face === "R") return "r";
   if (face === "+") return "+";
   if (face === "-") return "-";
   return ROLENROLL_BLANK_3D_FACE;
@@ -471,7 +471,7 @@ function getRolenrollResultDisplayLabels(face) {
 
 function getRolenrollLabelSlug(label) {
   if (label === "●") return "dot";
-  if (label === "R") return "r";
+  if (label === "r") return "r";
   if (label === "+") return "plus";
   if (label === "-") return "minus";
   return "blank";
@@ -498,8 +498,8 @@ function ensureRolenrollDicePreset(labels, dice3d = game.dice3d) {
       type: "d6",
       labels: getRolenrollDicePresetLabels(labels),
       system,
-      font: "Arial Black",
-      fontScale: 1.15
+      font: "Arial",
+      fontScale: 1
     }, "d6");
     registeredRolenrollDiceSystems.add(system);
     return system;
@@ -518,7 +518,7 @@ function registerRolenrollDicePresets(dice3d) {
     for (const faceThree of middleFaces) {
       for (const faceFour of middleFaces) {
         for (const faceFive of middleFaces) {
-          combinations.push(["●", faceTwo, faceThree, faceFour, faceFive, "R"]);
+          combinations.push(["●", faceTwo, faceThree, faceFour, faceFive, "r"]);
         }
       }
     }
