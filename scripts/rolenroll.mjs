@@ -457,12 +457,17 @@ function getRolenrollDiceAppearance(face) {
   };
 }
 
+function getRolenrollDieLabels(config) {
+  return buildDieFaces(config).map(getRolenrollFaceLabel);
+}
+
 function showDiceSoNiceOnly(round) {
   if (!game.dice3d?.show) return;
 
   const dice = round.map((die) => ({
     result: die.roll,
     resultLabel: getRolenrollFaceLabel(die.face),
+    labels: getRolenrollDieLabels(die.config),
     type: "d6",
     vectors: [],
     options: {
