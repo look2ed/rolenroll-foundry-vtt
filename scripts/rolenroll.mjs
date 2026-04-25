@@ -131,6 +131,7 @@ const STATUS_CATEGORIES = ["buff", "injuries", "flaw", "psychiatric"];
 const STATUS_DURATION_KINDS = ["permanent", "temporary"];
 const STATUS_DURATION_MODES = ["turns", "skill-check"];
 const ROLENROLL_DICE_SYSTEM_ID = "rolenroll";
+let registeredRolenrollDiceSystem = false;
 const registeredRolenrollDiceTypes = new Set();
 
 const FALLBACK_LOCALIZATION = {
@@ -463,26 +464,31 @@ function getRolenrollDieLabels(config) {
   return buildDieFaces(config).map(getRolenrollFaceLabel);
 }
 
+function getRolenrollLabelSlug(label) {
+  if (label === "●") return "dot";
+  if (label === "Ⓡ") return "r";
+  if (label === "+") return "plus";
+  if (label === "-") return "minus";
+  return "blank";
+}
+
 function getRolenrollDieType(labels) {
-  const slug = labels.map((label) => {
-    if (label === "●") return "dot";
-    if (label === "Ⓡ") return "r";
-    if (label === "+") return "plus";
-    if (label === "-") return "minus";
-    return "blank";
-  }).join("-");
+  const slug = labels.map(getRolenrollLabelSlug).join("-");
   return `drr-${slug}`;
 }
 
-function ensureRolenrollDicePreset(labels) {
-  if (!game.dice3d?.addSystem || !game.dice3d?.addDicePreset) return null;
+function ensureRolenrollDicePreset(labels, dice3d = game.dice3d) {
+  if (!dice3d?.addSystem || !dice3d?.addDicePreset) return null;
 
   const type = getRolenrollDieType(labels);
   if (registeredRolenrollDiceTypes.has(type)) return type;
 
   try {
-    game.dice3d.addSystem({ id: ROLENROLL_DICE_SYSTEM_ID, name: "Role & Roll" }, "default");
-    game.dice3d.addDicePreset({
+    if (!registeredRolenrollDiceSystem) {
+      dice3d.addSystem({ id: ROLENROLL_DICE_SYSTEM_ID, name: "Role & Roll" }, "default");
+      registeredRolenrollDiceSystem = true;
+    }
+    dice3d.addDicePreset({
       type,
       labels,
       system: ROLENROLL_DICE_SYSTEM_ID,
@@ -495,6 +501,24 @@ function ensureRolenrollDicePreset(labels) {
     console.warn("RolEnRoll | Dice So Nice preset registration failed.", error);
     return null;
   }
+}
+
+function registerRolenrollDicePresets(dice3d) {
+  if (!dice3d?.addSystem || !dice3d?.addDicePreset) return;
+
+  const middleFaces = [" ", "+", "-"];
+  const combinations = [];
+  for (const faceTwo of middleFaces) {
+    for (const faceThree of middleFaces) {
+      for (const faceFour of middleFaces) {
+        for (const faceFive of middleFaces) {
+          combinations.push(["●", faceTwo, faceThree, faceFour, faceFive, "Ⓡ"]);
+        }
+      }
+    }
+  }
+
+  for (const labels of combinations) ensureRolenrollDicePreset(labels, dice3d);
 }
 
 function showDiceSoNiceOnly(round) {
@@ -2040,6 +2064,8 @@ Hooks.once("init", () => {
     label: "ROLENROLL.Sheet.Character"
   });
 });
+
+Hooks.once("DiceSoNiceReady", registerRolenrollDicePresets);
 
 Hooks.once("ready", async () => {
   let macro = game.macros.getName("Role & Roll Manual Roller");
