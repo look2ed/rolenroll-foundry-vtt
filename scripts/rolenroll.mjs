@@ -131,13 +131,6 @@ const STATUS_CATEGORIES = ["buff", "injuries", "flaw", "psychiatric"];
 const STATUS_DURATION_KINDS = ["permanent", "temporary"];
 const STATUS_DURATION_MODES = ["turns", "skill-check"];
 const ROLENROLL_DICE_SYSTEM_ID = "rolenroll";
-const ROLENROLL_DICE_TEXTURES = {
-  blank: "/systems/rolenroll/assets/dice/blank.png",
-  dot: "/systems/rolenroll/assets/dice/dot.png",
-  r: "/systems/rolenroll/assets/dice/r.png",
-  plus: "/systems/rolenroll/assets/dice/plus.png",
-  minus: "/systems/rolenroll/assets/dice/minus.png"
-};
 const registeredRolenrollDiceSystems = new Set();
 
 const FALLBACK_LOCALIZATION = {
@@ -424,7 +417,7 @@ function parseSpecialDice(specialDice) {
 
 function getRolenrollFaceLabel(face) {
   if (face === "1") return "●";
-  if (face === "R") return "r";
+  if (face === "R") return "R";
   if (face === "+") return "+";
   if (face === "-") return "-";
   return "";
@@ -477,7 +470,7 @@ function getRolenrollResultDisplayLabels(face) {
 
 function getRolenrollLabelSlug(label) {
   if (label === "●") return "dot";
-  if (label === "r") return "r";
+  if (label === "R") return "reroll";
   if (label === "+") return "plus";
   if (label === "-") return "minus";
   return "blank";
@@ -486,16 +479,6 @@ function getRolenrollLabelSlug(label) {
 function getRolenrollDiceSystemId(labels) {
   const slug = labels.map(getRolenrollLabelSlug).join("-");
   return `${ROLENROLL_DICE_SYSTEM_ID}-${slug}`;
-}
-
-function getRolenrollDicePresetLabels(labels) {
-  return labels.map((label) => {
-    if (label === "●") return ROLENROLL_DICE_TEXTURES.dot;
-    if (label === "r") return ROLENROLL_DICE_TEXTURES.r;
-    if (label === "+") return ROLENROLL_DICE_TEXTURES.plus;
-    if (label === "-") return ROLENROLL_DICE_TEXTURES.minus;
-    return ROLENROLL_DICE_TEXTURES.blank;
-  });
 }
 
 function ensureRolenrollDicePreset(labels, dice3d = game.dice3d) {
@@ -508,10 +491,10 @@ function ensureRolenrollDicePreset(labels, dice3d = game.dice3d) {
     dice3d.addSystem({ id: system, name: "Role & Roll" }, "default");
     dice3d.addDicePreset({
       type: "d6",
-      labels: getRolenrollDicePresetLabels(labels),
+      labels,
       system,
-      font: "Arial",
-      fontScale: 1
+      font: "Arial Black",
+      fontScale: 1.15
     }, "d6");
     registeredRolenrollDiceSystems.add(system);
     return system;
@@ -535,7 +518,7 @@ function registerRolenrollDicePresets(dice3d) {
     for (const faceThree of middleFaces) {
       for (const faceFour of middleFaces) {
         for (const faceFive of middleFaces) {
-          combinations.push(["●", faceTwo, faceThree, faceFour, faceFive, "r"]);
+          combinations.push(["●", faceTwo, faceThree, faceFour, faceFive, "R"]);
         }
       }
     }
