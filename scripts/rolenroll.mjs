@@ -131,8 +131,7 @@ const STATUS_CATEGORIES = ["buff", "injuries", "flaw", "psychiatric"];
 const STATUS_DURATION_KINDS = ["permanent", "temporary"];
 const STATUS_DURATION_MODES = ["turns", "skill-check"];
 const ROLENROLL_DICE_SYSTEM_ID = "rolenroll";
-let registeredRolenrollDiceSystem = false;
-const registeredRolenrollDiceTypes = new Set();
+const registeredRolenrollDiceSystems = new Set();
 
 const FALLBACK_LOCALIZATION = {
   "Cancel": "Cancel",
@@ -472,31 +471,28 @@ function getRolenrollLabelSlug(label) {
   return "blank";
 }
 
-function getRolenrollDieType(labels) {
+function getRolenrollDiceSystemId(labels) {
   const slug = labels.map(getRolenrollLabelSlug).join("-");
-  return `drr-${slug}`;
+  return `${ROLENROLL_DICE_SYSTEM_ID}-${slug}`;
 }
 
 function ensureRolenrollDicePreset(labels, dice3d = game.dice3d) {
   if (!dice3d?.addSystem || !dice3d?.addDicePreset) return null;
 
-  const type = getRolenrollDieType(labels);
-  if (registeredRolenrollDiceTypes.has(type)) return type;
+  const system = getRolenrollDiceSystemId(labels);
+  if (registeredRolenrollDiceSystems.has(system)) return system;
 
   try {
-    if (!registeredRolenrollDiceSystem) {
-      dice3d.addSystem({ id: ROLENROLL_DICE_SYSTEM_ID, name: "Role & Roll" }, "default");
-      registeredRolenrollDiceSystem = true;
-    }
+    dice3d.addSystem({ id: system, name: "Role & Roll" }, "default");
     dice3d.addDicePreset({
-      type,
+      type: "d6",
       labels,
-      system: ROLENROLL_DICE_SYSTEM_ID,
+      system,
       font: "Arial Black",
       fontScale: 1.15
     }, "d6");
-    registeredRolenrollDiceTypes.add(type);
-    return type;
+    registeredRolenrollDiceSystems.add(system);
+    return system;
   } catch (error) {
     console.warn("RolEnRoll | Dice So Nice preset registration failed.", error);
     return null;
@@ -526,15 +522,18 @@ function showDiceSoNiceOnly(round) {
 
   const dice = round.map((die) => {
     const labels = getRolenrollDieLabels(die.config);
-    const type = ensureRolenrollDicePreset(labels) ?? "d6";
+    const system = ensureRolenrollDicePreset(labels);
     return {
       result: die.roll,
       resultLabel: getRolenrollFaceLabel(die.face),
       labels,
-      type,
+      type: "d6",
       vectors: [],
       options: {
-        appearance: getRolenrollDiceAppearance(die.face)
+        appearance: {
+          ...getRolenrollDiceAppearance(die.face),
+          ...(system ? { system } : {})
+        }
       }
     };
   });
