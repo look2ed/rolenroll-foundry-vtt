@@ -986,10 +986,14 @@
 
 .role-roll-face-point::before {
   content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: #173a3f;
+  transform: translate(-50%, -50%);
 }
 
 .role-roll-face-reroll {
