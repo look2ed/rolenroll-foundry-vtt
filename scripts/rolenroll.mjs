@@ -131,6 +131,7 @@ const STATUS_CATEGORIES = ["buff", "injuries", "flaw", "psychiatric"];
 const STATUS_DURATION_KINDS = ["permanent", "temporary"];
 const STATUS_DURATION_MODES = ["turns", "skill-check"];
 const ROLENROLL_DICE_SYSTEM_ID = "rolenroll";
+const ROLENROLL_BLANK_3D_FACE = "·";
 const registeredRolenrollDiceSystems = new Set();
 
 const FALLBACK_LOCALIZATION = {
@@ -420,7 +421,7 @@ function getRolenrollFaceLabel(face) {
   if (face === "R") return "Ⓡ";
   if (face === "+") return "+";
   if (face === "-") return "-";
-  return " ";
+  return ROLENROLL_BLANK_3D_FACE;
 }
 
 function getRolenrollDiceAppearance(face) {
@@ -463,6 +464,11 @@ function getRolenrollDieLabels(config) {
   return buildDieFaces(config).map(getRolenrollFaceLabel);
 }
 
+function getRolenrollResultDisplayLabels(face) {
+  const label = getRolenrollFaceLabel(face);
+  return Array.from({ length: 6 }, () => label);
+}
+
 function getRolenrollLabelSlug(label) {
   if (label === "●") return "dot";
   if (label === "Ⓡ") return "r";
@@ -476,6 +482,10 @@ function getRolenrollDiceSystemId(labels) {
   return `${ROLENROLL_DICE_SYSTEM_ID}-${slug}`;
 }
 
+function getRolenrollDicePresetLabels(labels) {
+  return labels.map((label) => label === ROLENROLL_BLANK_3D_FACE ? "&nbsp;" : label);
+}
+
 function ensureRolenrollDicePreset(labels, dice3d = game.dice3d) {
   if (!dice3d?.addSystem || !dice3d?.addDicePreset) return null;
 
@@ -486,7 +496,7 @@ function ensureRolenrollDicePreset(labels, dice3d = game.dice3d) {
     dice3d.addSystem({ id: system, name: "Role & Roll" }, "default");
     dice3d.addDicePreset({
       type: "d6",
-      labels,
+      labels: getRolenrollDicePresetLabels(labels),
       system,
       font: "Arial Black",
       fontScale: 1.15
@@ -502,7 +512,7 @@ function ensureRolenrollDicePreset(labels, dice3d = game.dice3d) {
 function registerRolenrollDicePresets(dice3d) {
   if (!dice3d?.addSystem || !dice3d?.addDicePreset) return;
 
-  const middleFaces = [" ", "+", "-"];
+  const middleFaces = [ROLENROLL_BLANK_3D_FACE, "+", "-"];
   const combinations = [];
   for (const faceTwo of middleFaces) {
     for (const faceThree of middleFaces) {
@@ -521,7 +531,7 @@ function showDiceSoNiceOnly(round) {
   if (!game.dice3d?.show) return;
 
   const dice = round.map((die) => {
-    const labels = getRolenrollDieLabels(die.config);
+    const labels = getRolenrollResultDisplayLabels(die.face);
     const system = ensureRolenrollDicePreset(labels);
     return {
       result: die.roll,
