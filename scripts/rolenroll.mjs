@@ -514,6 +514,11 @@ function registerRolenrollDicePresets(dice3d) {
 
   const middleFaces = [ROLENROLL_BLANK_3D_FACE, "+", "-"];
   const combinations = [];
+
+  for (const face of ["1", "R", "+", "-", ""]) {
+    combinations.push(getRolenrollResultDisplayLabels(face));
+  }
+
   for (const faceTwo of middleFaces) {
     for (const faceThree of middleFaces) {
       for (const faceFour of middleFaces) {
