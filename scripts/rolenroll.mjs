@@ -414,11 +414,47 @@ function parseSpecialDice(specialDice) {
 }
 
 function getRolenrollFaceLabel(face) {
-  if (face === "1") return "•";
+  if (face === "1") return "●";
   if (face === "R") return "Ⓡ";
   if (face === "+") return "+";
   if (face === "-") return "-";
-  return "";
+  return " ";
+}
+
+function getRolenrollDiceAppearance(face) {
+  if (face === "+") {
+    return {
+      background: "#e6f3df",
+      foreground: "#315322",
+      outline: "#f7fff3",
+      edge: "#598345"
+    };
+  }
+
+  if (face === "-") {
+    return {
+      background: "#f5dfdc",
+      foreground: "#71352e",
+      outline: "#fff6f4",
+      edge: "#9a5047"
+    };
+  }
+
+  if (face === "1" || face === "R") {
+    return {
+      background: "#dcebea",
+      foreground: "#173a3f",
+      outline: "#f7ffff",
+      edge: "#23545a"
+    };
+  }
+
+  return {
+    background: "#fffdf7",
+    foreground: "#fffdf7",
+    outline: "#fffdf7",
+    edge: "#a9a291"
+  };
 }
 
 function showDiceSoNiceOnly(round) {
@@ -430,12 +466,7 @@ function showDiceSoNiceOnly(round) {
     type: "d6",
     vectors: [],
     options: {
-      appearance: {
-        background: die.face === "+" ? "#e6f3df" : die.face === "-" ? "#f5dfdc" : die.face === "1" || die.face === "R" ? "#dcebea" : "#fffdf7",
-        foreground: die.face === "+" ? "#315322" : die.face === "-" ? "#71352e" : "#173a3f",
-        outline: die.face === "+" ? "#598345" : die.face === "-" ? "#9a5047" : die.face === "1" || die.face === "R" ? "#23545a" : "#a9a291",
-        edge: "#a9a291"
-      }
+      appearance: getRolenrollDiceAppearance(die.face)
     }
   }));
 
@@ -651,6 +682,54 @@ function renderRollSpecialDiceBuilder(form, specialDiceValue) {
   const list = form.querySelector("[data-roll-special-dice-list]");
   if (input) input.value = specialDiceValue;
   if (list) list.innerHTML = buildSpecialDicePreviewHtml(specialDiceValue);
+}
+
+function activateRollSpecialDiceBuilder(form, getSpecialDiceValue, setSpecialDiceValue) {
+  form.addEventListener("click", (event) => {
+    const addButton = event.target.closest("[data-roll-add-special-die]");
+    const removeButton = event.target.closest("[data-roll-remove-special-die]");
+    const faceButton = event.target.closest("[data-roll-special-die-face]");
+
+    if (addButton) {
+      event.preventDefault();
+      const diceFaces = parseSpecialDiceFaces(getSpecialDiceValue());
+      diceFaces.push(["1", "", "", "", "", "R"]);
+      const nextSpecialDiceValue = buildSpecialDiceValue(diceFaces);
+      setSpecialDiceValue(nextSpecialDiceValue);
+      renderRollSpecialDiceBuilder(form, nextSpecialDiceValue);
+      return;
+    }
+
+    if (removeButton) {
+      event.preventDefault();
+      const dieIndex = Number(removeButton.dataset.rollRemoveSpecialDie ?? -1);
+      const diceFaces = parseSpecialDiceFaces(getSpecialDiceValue());
+      if (!Number.isInteger(dieIndex) || dieIndex < 0 || dieIndex >= diceFaces.length) return;
+
+      diceFaces.splice(dieIndex, 1);
+      const nextSpecialDiceValue = buildSpecialDiceValue(diceFaces);
+      setSpecialDiceValue(nextSpecialDiceValue);
+      renderRollSpecialDiceBuilder(form, nextSpecialDiceValue);
+      return;
+    }
+
+    if (faceButton) {
+      event.preventDefault();
+      const [dieIndexText, faceIndexText] = String(faceButton.dataset.rollSpecialDieFace || "").split(":");
+      const dieIndex = Number(dieIndexText);
+      const faceIndex = Number(faceIndexText);
+      if (!Number.isInteger(dieIndex) || !Number.isInteger(faceIndex) || faceIndex < 1 || faceIndex > 4) return;
+
+      const diceFaces = parseSpecialDiceFaces(getSpecialDiceValue());
+      if (!diceFaces[dieIndex]) return;
+
+      const current = diceFaces[dieIndex][faceIndex] || "";
+      diceFaces[dieIndex][faceIndex] = current === "" ? "+" : current === "+" ? "-" : "";
+      const nextSpecialDiceValue = buildSpecialDiceValue(diceFaces);
+      setSpecialDiceValue(nextSpecialDiceValue);
+      renderRollSpecialDiceBuilder(form, nextSpecialDiceValue);
+    }
+  });
 }
 
 function getAttributeValue(actor, codeOrKey) {
@@ -955,6 +1034,8 @@ async function performPoolRoll({ label, totalDice, specialDice = "", success = 0
 }
 
 function openManualRoll() {
+  let specialDiceValue = "";
+
   const content = `
     <form class="rolenroll-roll-dialog">
       <div class="form-group">
@@ -965,10 +1046,13 @@ function openManualRoll() {
         <label>${localize("ROLENROLL.Roll.TotalDice")}</label>
         <input type="number" name="totalDice" min="1" max="50" value="5">
       </div>
-      <div class="form-group">
-        <label>${localize("ROLENROLL.Roll.SpecialDice")}</label>
-        <input type="text" name="specialDice" value="" placeholder="a1, n2">
-        <p class="notes">${localize("ROLENROLL.Roll.SpecialDiceHint")}</p>
+      <div class="form-group special-dice-builder">
+        <div class="special-dice-builder-header">
+          <span>${localize("ROLENROLL.Roll.SpecialDice")}</span>
+          <button type="button" data-roll-add-special-die>${localize("ROLENROLL.Roll.AddSpecialDie")}</button>
+        </div>
+        <input type="hidden" name="specialDice" value="">
+        <div class="special-dice-list" data-roll-special-dice-list>${buildSpecialDicePreviewHtml("")}</div>
       </div>
       <div class="form-group">
         <label>${localize("ROLENROLL.Roll.Succeed")}</label>
@@ -1003,7 +1087,19 @@ function openManualRoll() {
         label: localize("Cancel")
       }
     },
-    default: "roll"
+    default: "roll",
+    render: (html) => {
+      const form = html[0]?.querySelector("form");
+      if (!form) return;
+
+      activateRollSpecialDiceBuilder(
+        form,
+        () => specialDiceValue,
+        (nextSpecialDiceValue) => {
+          specialDiceValue = nextSpecialDiceValue;
+        }
+      );
+    }
   }).render(true);
 }
 
@@ -1848,48 +1944,13 @@ class RolenrollActorSheet extends ActorSheet {
         const form = html[0]?.querySelector("form");
         if (!form) return;
 
-        form.addEventListener("click", (event) => {
-          const addButton = event.target.closest("[data-roll-add-special-die]");
-          const removeButton = event.target.closest("[data-roll-remove-special-die]");
-          const faceButton = event.target.closest("[data-roll-special-die-face]");
-
-          if (addButton) {
-            event.preventDefault();
-            const diceFaces = parseSpecialDiceFaces(specialDiceValue);
-            diceFaces.push(["1", "", "", "", "", "R"]);
-            specialDiceValue = buildSpecialDiceValue(diceFaces);
-            renderRollSpecialDiceBuilder(form, specialDiceValue);
-            return;
+        activateRollSpecialDiceBuilder(
+          form,
+          () => specialDiceValue,
+          (nextSpecialDiceValue) => {
+            specialDiceValue = nextSpecialDiceValue;
           }
-
-          if (removeButton) {
-            event.preventDefault();
-            const dieIndex = Number(removeButton.dataset.rollRemoveSpecialDie ?? -1);
-            const diceFaces = parseSpecialDiceFaces(specialDiceValue);
-            if (!Number.isInteger(dieIndex) || dieIndex < 0 || dieIndex >= diceFaces.length) return;
-
-            diceFaces.splice(dieIndex, 1);
-            specialDiceValue = buildSpecialDiceValue(diceFaces);
-            renderRollSpecialDiceBuilder(form, specialDiceValue);
-            return;
-          }
-
-          if (faceButton) {
-            event.preventDefault();
-            const [dieIndexText, faceIndexText] = String(faceButton.dataset.rollSpecialDieFace || "").split(":");
-            const dieIndex = Number(dieIndexText);
-            const faceIndex = Number(faceIndexText);
-            if (!Number.isInteger(dieIndex) || !Number.isInteger(faceIndex) || faceIndex < 1 || faceIndex > 4) return;
-
-            const diceFaces = parseSpecialDiceFaces(specialDiceValue);
-            if (!diceFaces[dieIndex]) return;
-
-            const current = diceFaces[dieIndex][faceIndex] || "";
-            diceFaces[dieIndex][faceIndex] = current === "" ? "+" : current === "+" ? "-" : "";
-            specialDiceValue = buildSpecialDiceValue(diceFaces);
-            renderRollSpecialDiceBuilder(form, specialDiceValue);
-          }
-        });
+        );
       }
     }).render(true);
   }
@@ -1936,14 +1997,19 @@ Hooks.once("init", () => {
 });
 
 Hooks.once("ready", async () => {
-  if (!game.user.isGM) return;
-  if (game.macros.getName("Role & Roll Manual Roller")) return;
+  let macro = game.macros.getName("Role & Roll Manual Roller");
 
-  await Macro.create({
-    name: "Role & Roll Manual Roller",
-    type: "script",
-    scope: "global",
-    img: "icons/svg/dice-target.svg",
-    command: "game.rolenroll.openManualRoll();"
-  });
+  if (!macro && game.user.isGM) {
+    macro = await Macro.create({
+      name: "Role & Roll Manual Roller",
+      type: "script",
+      scope: "global",
+      img: "icons/svg/dice-target.svg",
+      command: "game.rolenroll.openManualRoll();"
+    });
+  }
+
+  if (macro && game.user.assignHotbarMacro) {
+    await game.user.assignHotbarMacro(macro, 10);
+  }
 });
